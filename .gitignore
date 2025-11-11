@@ -48,3 +48,9 @@ app.*.map.json
 *.bak
 *_original.dart
 *_new.dart
+
+# Assets lourds (demo only)
+assets/videos/
+assets/images/bg*.jpg
+assets/images/background.jpg
+sites-dating-app-web-code.tar.gz
