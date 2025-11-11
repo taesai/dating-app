@@ -319,9 +319,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Déconnexion
   Future<void> logout() async {
     try {
+      // Récupérer l'userId avant de nettoyer
+      final userId = _prefs.getString(_userIdKey);
+
       await _backend.logout();
       await _prefs.remove(_authKey);
       await _prefs.remove(_userIdKey);
+
+      // Nettoyer les données de swipes de cet utilisateur
+      if (userId != null) {
+        await _prefs.remove('swipe_count_$userId');
+        await _prefs.remove('swipe_date_$userId');
+        print('🧹 Données de swipes nettoyées pour l\'utilisateur $userId');
+      }
 
       state = const AuthState(
         isLoading: false,
@@ -330,8 +340,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       print('❌ Erreur déconnexion: $e');
       // Même en cas d'erreur, nettoyer l'état local
+      final userId = _prefs.getString(_userIdKey);
+
       await _prefs.remove(_authKey);
       await _prefs.remove(_userIdKey);
+
+      // Nettoyer les données de swipes même en cas d'erreur
+      if (userId != null) {
+        await _prefs.remove('swipe_count_$userId');
+        await _prefs.remove('swipe_date_$userId');
+      }
+
       state = const AuthState(
         isLoading: false,
         isAuthenticated: false,
