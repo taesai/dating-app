@@ -959,6 +959,7 @@ class AppwriteService {
           'userId': userId,
           'videoId': videoId,
           'timestamp': now,  // Attribut personnalisé requis dans Appwrite Cloud
+          'createdAt': now,  // Attribut requis dans le schéma Appwrite
           // $createdAt est géré automatiquement par Appwrite
         },
       );
