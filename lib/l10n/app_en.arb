@@ -1,0 +1,45 @@
+{
+  "@@locale": "en",
+  "appTitle": "Dating App",
+
+  "pendingApprovalTitle": "Pending Approval",
+  "pendingApprovalMessage": "Your profile is pending admin approval. You can swipe up to {swipesLeft} times per day.",
+  "@pendingApprovalMessage": {
+    "placeholders": {
+      "swipesLeft": {
+        "type": "int"
+      }
+    }
+  },
+
+  "swipesRemaining": "{count} swipes remaining today",
+  "@swipesRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noSwipesLeft": "No swipes left today. Come back tomorrow!",
+  "profileApproved": "Your profile has been approved!",
+  "videoApproved": "Your video has been approved!",
+
+  "swipe": "Swipe",
+  "discover": "Discover",
+  "messages": "Messages",
+  "profile": "Profile",
+  "search": "Search",
+
+  "noVideosFound": "No videos found",
+  "loading": "Loading...",
+  "error": "Error",
+
+  "like": "Like",
+  "pass": "Pass",
+  "superLike": "Super Like",
+
+  "settings": "Settings",
+  "logout": "Logout",
+  "admin": "Admin"
+}

@@ -1,0 +1,45 @@
+{
+  "@@locale": "es",
+  "appTitle": "App de Citas",
+
+  "pendingApprovalTitle": "Pendiente de aprobación",
+  "pendingApprovalMessage": "Tu perfil está pendiente de aprobación por el administrador. Puedes deslizar hasta {swipesLeft} veces por día.",
+  "@pendingApprovalMessage": {
+    "placeholders": {
+      "swipesLeft": {
+        "type": "int"
+      }
+    }
+  },
+
+  "swipesRemaining": "{count} deslizamientos restantes hoy",
+  "@swipesRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noSwipesLeft": "No quedan deslizamientos hoy. ¡Vuelve mañana!",
+  "profileApproved": "¡Tu perfil ha sido aprobado!",
+  "videoApproved": "¡Tu video ha sido aprobado!",
+
+  "swipe": "Deslizar",
+  "discover": "Descubrir",
+  "messages": "Mensajes",
+  "profile": "Perfil",
+  "search": "Buscar",
+
+  "noVideosFound": "No se encontraron videos",
+  "loading": "Cargando...",
+  "error": "Error",
+
+  "like": "Me gusta",
+  "pass": "Pasar",
+  "superLike": "Súper Me gusta",
+
+  "settings": "Configuración",
+  "logout": "Cerrar sesión",
+  "admin": "Admin"
+}

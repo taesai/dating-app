@@ -1,0 +1,13 @@
+# Netlify configuration for Flutter Web
+[build]
+  publish = "build/web"
+  command = "flutter build web --release --web-renderer html"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  # Flutter version
+  FLUTTER_VERSION = "3.27.0"

@@ -1,0 +1,45 @@
+{
+  "@@locale": "fr",
+  "appTitle": "App de Rencontres",
+
+  "pendingApprovalTitle": "En attente d'approbation",
+  "pendingApprovalMessage": "Votre profil est en attente d'approbation par l'admin. Vous pouvez swiper jusqu'à {swipesLeft} fois par jour.",
+  "@pendingApprovalMessage": {
+    "placeholders": {
+      "swipesLeft": {
+        "type": "int"
+      }
+    }
+  },
+
+  "swipesRemaining": "{count} swipes restants aujourd'hui",
+  "@swipesRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noSwipesLeft": "Plus de swipes aujourd'hui. Revenez demain !",
+  "profileApproved": "Votre profil a été approuvé !",
+  "videoApproved": "Votre vidéo a été approuvée !",
+
+  "swipe": "Swipe",
+  "discover": "Découvrir",
+  "messages": "Messages",
+  "profile": "Profil",
+  "search": "Recherche",
+
+  "noVideosFound": "Aucune vidéo trouvée",
+  "loading": "Chargement...",
+  "error": "Erreur",
+
+  "like": "J'aime",
+  "pass": "Passer",
+  "superLike": "Super Like",
+
+  "settings": "Paramètres",
+  "logout": "Déconnexion",
+  "admin": "Admin"
+}

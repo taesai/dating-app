@@ -1,0 +1,13 @@
+{
+  "projectId": "681829e4003b243e6681",
+  "projectName": "dating_app",
+  "sites": [
+    {
+      "siteName": "dating-app",
+      "siteId": "dating-app-web",
+      "framework": "static",
+      "outputDirectory": "build/web",
+      "entryPoint": "index.html"
+    }
+  ]
+}

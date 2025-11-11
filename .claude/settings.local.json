@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter pub:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(find:*)",
+      "Bash(for file in search_page.dart edit_profile_page.dart upload_profile_photo_page.dart upload_video_page.dart complete_profile_page.dart)",
+      "Bash(do sed -i \"s/import ''.*appwrite_service.dart'';/import ''..\\/..\\/core\\/services\\/backend_service.dart'';/g\" \"$file\")",
+      "Bash(done)",
+      "Read(//d/APPS/Flutter/WEB/dating_app_backend/database/**)",
+      "Read(//d/APPS/Flutter/WEB/dating_app_backend/routes/**)",
+      "Read(//d/APPS/Flutter/WEB/dating_app_backend/**)",
+      "Bash(cat:*)",
+      "Bash(node -e \"const fs=require(''fs'');const db=JSON.parse(fs.readFileSync(''./database/db.json''));db.users.forEach(u=>{u.lookingFor=u.lookingFor||[];u.isActive=u.isActive!==false});fs.writeFileSync(''./database/db.json'',JSON.stringify(db,null,2))\")",
+      "Bash(node:*)",
+      "Bash(npm start)",
+      "Bash(flutter run:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(flutter clean:*)",
+      "Bash(powershell:*)",
+      "Read(//c/Users/PJ_COM/AppData/Local/Pub/Cache/hosted/pub.dev/local_hero_transform-1.0.6/lib/src/**)",
+      "Bash(nc:*)",
+      "Read(//c/Users/PJ_COM/AppData/Local/Pub/Cache/hosted/pub.dev/local_hero_transform-1.0.6/lib/**)",
+      "Bash(for file in D:/APPS/Flutter/WEB/dating_app/lib/core/services/*.dart)",
+      "Bash(do wc:*)",
+      "Bash(dart analyze:*)",
+      "Bash(flutter build:*)",
+      "Bash(dart run:*)",
+      "Bash(lsof:*)",
+      "Bash(python:*)",
+      "Bash(rm:*)",
+      "Read(//c/Users/PJ_COM/AppData/Local/Pub/Cache/hosted/pub.dev/**)",
+      "Bash(mkdir:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
