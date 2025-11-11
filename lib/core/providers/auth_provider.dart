@@ -104,6 +104,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       print('🔐 Tentative de connexion pour: $email');
 
+      // Nettoyer les données du précédent utilisateur
+      final oldUserId = _prefs.getString(_userIdKey);
+      if (oldUserId != null) {
+        await _prefs.remove('swipe_count_$oldUserId');
+        await _prefs.remove('swipe_date_$oldUserId');
+        print('🧹 Données de swipes nettoyées pour l\'ancien utilisateur');
+      }
+
       // Vérifier et nettoyer toute session existante
       try {
         await _backend.logout();
