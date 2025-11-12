@@ -1,8 +1,10 @@
 import 'package:appwrite/appwrite.dart';
 import 'dart:developer' as developer;
 import 'dart:async';
+import 'dart:typed_data';
 import 'appwrite_reports_service.dart';
 import 'appwrite_chat_service.dart';
+import 'cloudinary_service.dart';
 import '../config/appwrite_config.dart';
 
 class AppwriteService {
@@ -398,43 +400,34 @@ class AppwriteService {
     String? fileName,
   }) async {
     try {
-      developer.log('📹 Upload vidéo démarré...', name: 'AppwriteService');
+      developer.log('📹 Upload vidéo démarré vers Cloudinary...', name: 'AppwriteService');
       developer.log('User ID: $userId', name: 'AppwriteService');
-      developer.log('File path: $filePath', name: 'AppwriteService');
       developer.log('File name: $fileName', name: 'AppwriteService');
 
-      // Upload video file
-      final InputFile inputFile;
-      if (fileBytes != null && fileName != null) {
-        // Pour le web, utiliser les bytes
-        developer.log('📱 Upload depuis bytes (WEB)', name: 'AppwriteService');
-        inputFile = InputFile.fromBytes(
-          bytes: fileBytes,
-          filename: fileName,
-        );
-      } else {
-        // Pour mobile, utiliser le path
-        developer.log('📱 Upload depuis path (MOBILE)', name: 'AppwriteService');
-        inputFile = InputFile.fromPath(path: filePath);
+      // Upload vers Cloudinary CDN au lieu de Appwrite Storage
+      final cloudinary = CloudinaryService();
+      cloudinary.initialize();
+
+      if (fileBytes == null || fileName == null) {
+        throw Exception('fileBytes et fileName requis pour upload Cloudinary');
       }
 
-      final fileId = ID.unique();
-      final file = await storage.createFile(
-        bucketId: mediasBucketId,
-        fileId: fileId,
-        file: inputFile,
+      final cloudinaryUrl = await cloudinary.uploadVideo(
+        videoBytes: Uint8List.fromList(fileBytes),
+        fileName: fileName,
+        userId: userId,
       );
 
-      developer.log('✅ Fichier uploadé: $fileId', name: 'AppwriteService');
+      developer.log('✅ Vidéo uploadée sur Cloudinary: $cloudinaryUrl', name: 'AppwriteService');
 
-      // Create video document
+      // Créer le document vidéo dans Appwrite avec l'URL Cloudinary
       final videoDoc = await databases.createDocument(
         databaseId: databaseId,
         collectionId: videosCollectionId,
         documentId: ID.unique(),
         data: {
           'userId': userId,
-          'fileId': fileId,
+          'fileId': cloudinaryUrl, // Stocker l'URL Cloudinary au lieu du fileId Appwrite
           'title': title,
           'description': description ?? '',
           'views': 0,
@@ -586,6 +579,12 @@ class AppwriteService {
   }
 
   String getVideoUrl(String fileId) {
+    // Si fileId est déjà une URL Cloudinary, la retourner directement
+    if (fileId.startsWith('http://') || fileId.startsWith('https://')) {
+      return fileId;
+    }
+
+    // Sinon, utiliser l'ancienne méthode Appwrite (pour les vidéos migrées)
     return '$endpoint/storage/buckets/$mediasBucketId/files/$fileId/view?project=$projectId';
   }
 

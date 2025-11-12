@@ -41,6 +41,8 @@ dependencies:
   # Backend
   appwrite: ^13.0.0
   http: ^1.2.0
+  cloudinary_flutter: ^1.2.0
+  cloudinary_url_gen: ^1.6.0
 
   # Video player
   video_player: ^2.9.2
