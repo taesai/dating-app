@@ -605,9 +605,11 @@ class AppwriteService {
         collectionId: likesCollectionId,
         documentId: ID.unique(),
         data: {
+          'userId': fromUserId,
           'fromUserId': fromUserId,
           'toUserId': toUserId,
-          'createdAt': DateTime.now().toIso8601String(),
+          'likedUserId': toUserId,  // Attribut requis par Appwrite
+          // $createdAt géré automatiquement par Appwrite
         },
       );
 
@@ -630,8 +632,8 @@ class AppwriteService {
           data: {
             'user1Id': fromUserId,
             'user2Id': toUserId,
-            'createdAt': DateTime.now().toIso8601String(),
             'isActive': true,
+            // $createdAt géré automatiquement par Appwrite
           },
         );
       }
