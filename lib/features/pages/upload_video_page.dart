@@ -55,8 +55,20 @@ class _UploadVideoPageState extends State<UploadVideoPage> {
           _videoFile = video;
         });
 
-        // Analyser la vidéo sur Web
+        // Sur Web, charger aussi les bytes pour l'upload
         if (kIsWeb) {
+          print('🌐 Mode Web détecté, chargement des bytes...');
+          final bytes = await video.readAsBytes();
+          print('✅ Bytes chargés: ${bytes.length} bytes');
+
+          setState(() {
+            _webVideoBytes = bytes;
+            _webVideoFileName = video.name;
+          });
+
+          print('✅ État mis à jour: _webVideoBytes=${_webVideoBytes?.length}, _webVideoFileName=$_webVideoFileName');
+
+          // Analyser la vidéo
           await _analyzeVideoFile(video);
         }
       }

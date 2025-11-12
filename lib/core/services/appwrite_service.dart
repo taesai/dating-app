@@ -540,13 +540,28 @@ class AppwriteService {
       final videoDoc = await getVideoById(videoId);
       final fileId = videoDoc.data['fileId'];
 
-      // Supprimer le fichier du storage
+      // Vérifier si c'est une URL Cloudinary ou un fileId Appwrite
       if (fileId != null) {
-        await storage.deleteFile(
-          bucketId: mediasBucketId,
-          fileId: fileId,
-        );
-        developer.log('✅ Fichier vidéo supprimé: $fileId', name: 'AppwriteService');
+        if (fileId.toString().startsWith('http')) {
+          // C'est une URL Cloudinary - utiliser CloudinaryService
+          developer.log('🗑️ Suppression depuis Cloudinary: $fileId', name: 'AppwriteService');
+          final cloudinary = CloudinaryService();
+          cloudinary.initialize();
+
+          final publicId = cloudinary.extractPublicId(fileId);
+          if (publicId != null) {
+            await cloudinary.deleteVideo(publicId);
+            developer.log('✅ Fichier vidéo Cloudinary supprimé', name: 'AppwriteService');
+          }
+        } else {
+          // C'est un ancien fileId Appwrite Storage
+          developer.log('🗑️ Suppression depuis Appwrite Storage: $fileId', name: 'AppwriteService');
+          await storage.deleteFile(
+            bucketId: mediasBucketId,
+            fileId: fileId,
+          );
+          developer.log('✅ Fichier vidéo Appwrite supprimé: $fileId', name: 'AppwriteService');
+        }
       }
 
       // Supprimer le document vidéo
