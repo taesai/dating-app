@@ -60,18 +60,30 @@ class _MatchesPageState extends State<MatchesPage> {
       final matches = uniqueMatchesMap.values.toList();
       print('📊 Matches uniques après dédoublonnage: ${matches.length}');
 
-      // Load user info for each unique match
-      for (var match in matches) {
+      // Charger TOUS les profils utilisateurs en PARALLÈLE
+      print('👥 Chargement de ${matches.length} profils en parallèle...');
+      final userFutures = matches.map((match) async {
         final otherUserId = match.getOtherUserId(_currentUserId!);
         try {
           final userDoc = await _backend.getUserProfile(otherUserId);
           final userData = userDoc is Map ? userDoc : userDoc.data;
-          _matchUsers[otherUserId] = DatingUser.fromJson(userData);
+          return MapEntry(otherUserId, DatingUser.fromJson(userData));
         } catch (e) {
           print('⚠️ Erreur chargement utilisateur $otherUserId: $e');
-          // Continue if user not found
+          return null;
+        }
+      }).toList();
+
+      final userResults = await Future.wait(userFutures);
+
+      // Stocker les résultats
+      for (var entry in userResults) {
+        if (entry != null) {
+          _matchUsers[entry.key] = entry.value;
         }
       }
+
+      print('✅ ${_matchUsers.length} profils chargés');
 
       if (!mounted) return;
       setState(() {

@@ -74,7 +74,7 @@ class _WebVideoPlayerState extends State<WebVideoPlayer> {
         ..style.backgroundColor = 'black'
         ..setAttribute('playsinline', 'true')
         ..setAttribute('webkit-playsinline', 'true')
-        ..setAttribute('preload', 'metadata');
+        ..setAttribute('preload', 'auto'); // Préchargement agressif pour réduire le délai
 
       // Événements
       _videoElement?.onCanPlay.listen((_) {

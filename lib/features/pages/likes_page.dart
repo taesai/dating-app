@@ -92,42 +92,59 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
 
       print('📊 ${documents.length} likes reçus à charger');
 
-      for (var doc in documents) {
+      // Pré-filtrer pour éviter les doublons
+      final uniqueUserIds = <String>{};
+      final filteredDocs = documents.where((doc) {
+        final likeData = doc is Map ? doc : doc.data;
+        final userId = likeData['userId'];
+        if (uniqueUserIds.contains(userId)) return false;
+        uniqueUserIds.add(userId);
+        return true;
+      }).toList();
+
+      print('👥 ${filteredDocs.length} utilisateurs uniques à charger');
+
+      // Charger TOUS les profils et vidéos en PARALLÈLE
+      final futures = filteredDocs.map((doc) async {
         try {
           final likeData = doc is Map ? doc : doc.data;
           final userId = likeData['userId'];
           final videoId = likeData['videoId'];
 
-          // Si cet utilisateur a déjà liké une autre vidéo, on ignore ce like
-          if (uniqueLikes.containsKey(userId)) {
-            print('⏭️ Like ignoré (doublon): userId=$userId déjà présent');
-            continue;
-          }
+          // Charger user et vidéo en parallèle
+          final results = await Future.wait([
+            _backend.getUserProfile(userId),
+            _backend.getVideo(videoId),
+          ]);
 
-          print('👤 Chargement like reçu: userId=$userId, videoId=$videoId');
-
-          // Charger les données complètes de l'utilisateur et de la vidéo
-          final userDoc = await _backend.getUserProfile(userId);
-          final videoDoc = await _backend.getVideo(videoId);
+          final userDoc = results[0];
+          final videoDoc = results[1];
 
           final userData = userDoc is Map ? userDoc : userDoc.data;
           final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
 
-          final like = VideoLike(
+          return VideoLike(
             id: likeData['\$id'] ?? likeData['id'] ?? '',
             user: DatingUser.fromJson(userData),
             video: VideoModel.fromJson(videoData),
             createdAt: likeData['createdAt'] ?? '',
           );
-
-          // Stocker dans la map pour dédoublonner
-          uniqueLikes[userId] = like;
-
-          print('✅ Like reçu chargé: ${DatingUser.fromJson(userData).name}');
         } catch (e) {
           print('❌ Erreur chargement like reçu: $e');
+          return null;
+        }
+      }).toList();
+
+      final results = await Future.wait(futures);
+
+      // Filtrer les nulls
+      for (var like in results) {
+        if (like != null) {
+          uniqueLikes[like.user.id] = like;
         }
       }
+
+      print('✅ ${uniqueLikes.length} likes reçus chargés');
 
       // Convertir la map en liste
       videoLikes = uniqueLikes.values.toList();
@@ -155,45 +172,69 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
 
       print('📊 ${documents.length} likes envoyés à charger');
 
-      for (var doc in documents) {
+      // Charger TOUTES les vidéos en PARALLÈLE d'abord
+      final videoFutures = documents.map((doc) async {
         try {
           final likeData = doc is Map ? doc : doc.data;
           final videoId = likeData['videoId'];
-
-          // Charger la vidéo pour obtenir l'userId du propriétaire
           final videoDoc = await _backend.getVideo(videoId);
           final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
-          final video = VideoModel.fromJson(videoData);
+          return {
+            'likeData': likeData,
+            'video': VideoModel.fromJson(videoData),
+          };
+        } catch (e) {
+          print('❌ Erreur chargement vidéo: $e');
+          return null;
+        }
+      }).toList();
 
+      final videoResults = await Future.wait(videoFutures);
+
+      // Filtrer pour garder un seul like par utilisateur
+      final uniqueUserIds = <String>{};
+      final filteredResults = videoResults.where((result) {
+        if (result == null) return false;
+        final userId = (result['video'] as VideoModel).userId;
+        if (uniqueUserIds.contains(userId)) return false;
+        uniqueUserIds.add(userId);
+        return true;
+      }).toList();
+
+      print('👥 ${filteredResults.length} utilisateurs uniques à charger');
+
+      // Charger TOUS les profils utilisateurs en PARALLÈLE
+      final userFutures = filteredResults.map((result) async {
+        try {
+          final video = result!['video'] as VideoModel;
+          final likeData = result['likeData'];
           final userId = video.userId;
 
-          // Si on a déjà un like pour cet utilisateur, on ignore
-          if (uniqueLikes.containsKey(userId)) {
-            print('⏭️ Like ignoré (doublon): userId=$userId déjà présent');
-            continue;
-          }
-
-          print('👤 Chargement like envoyé: userId=$userId, videoId=$videoId');
-
-          // Charger les données complètes de l'utilisateur
           final userDoc = await _backend.getUserProfile(userId);
           final userData = userDoc is Map ? userDoc : userDoc.data;
 
-          final like = VideoLike(
+          return VideoLike(
             id: likeData['\$id'] ?? likeData['id'] ?? '',
             user: DatingUser.fromJson(userData),
             video: video,
             createdAt: likeData['createdAt'] ?? '',
           );
-
-          // Stocker dans la map pour dédoublonner
-          uniqueLikes[userId] = like;
-
-          print('✅ Like envoyé chargé: ${DatingUser.fromJson(userData).name}');
         } catch (e) {
-          print('❌ Erreur chargement like envoyé: $e');
+          print('❌ Erreur chargement profil: $e');
+          return null;
+        }
+      }).toList();
+
+      final userResults = await Future.wait(userFutures);
+
+      // Filtrer les nulls
+      for (var like in userResults) {
+        if (like != null) {
+          uniqueLikes[like.user.id] = like;
         }
       }
+
+      print('✅ ${uniqueLikes.length} likes envoyés chargés');
 
       // Convertir la map en liste
       videoLikes = uniqueLikes.values.toList();
@@ -355,8 +396,8 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
 
     return GridView.builder(
       padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 200, // Largeur max par carte (responsive)
         childAspectRatio: 0.75,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
@@ -399,8 +440,8 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
 
     return GridView.builder(
       padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 200, // Largeur max par carte (responsive)
         childAspectRatio: 0.75,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,

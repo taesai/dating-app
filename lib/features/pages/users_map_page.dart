@@ -265,7 +265,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
             mapController: _mapController,
             options: MapOptions(
               initialCenter: LatLng(_currentUser!.latitude, _currentUser!.longitude),
-              initialZoom: 12.0,
+              initialZoom: 9.0, // Zoom réduit pour voir ~200km de rayon
               minZoom: 2.0,
               maxZoom: 18.0,
             ),
@@ -619,10 +619,11 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
                   child: _isLoadingUsers
                       ? const Center(child: CircularProgressIndicator())
                       : ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 16), // Padding pour voir le dernier élément
                           itemCount: _nearbyUsers.length,
                           itemBuilder: (context, index) {
                             final user = _nearbyUsers[index];
-                            return _buildUserListTile(user);
+                            return _buildAnimatedUserTile(user, index);
                           },
                         ),
                 ),
@@ -749,9 +750,10 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
                               ),
                             )
                           : ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 16), // Padding pour voir le dernier élément
                               itemCount: _nearbyUsers.length,
                               itemBuilder: (context, index) {
-                                return _buildUserListTile(_nearbyUsers[index]);
+                                return _buildAnimatedUserTile(_nearbyUsers[index], index);
                               },
                             ),
                 ),
@@ -779,7 +781,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
           mapController: _mapController,
           options: MapOptions(
             initialCenter: LatLng(_currentUser!.latitude, _currentUser!.longitude),
-            initialZoom: 12.0,
+            initialZoom: 9.0, // Zoom réduit pour voir ~200km de rayon
             minZoom: 2.0,
             maxZoom: 18.0,
           ),
@@ -923,6 +925,25 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
           ],
         ),
       ],
+    );
+  }
+
+  // Wrapper animé pour les cartes de profils
+  Widget _buildAnimatedUserTile(DatingUser user, int index) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 300 + (index * 50)), // Décalage par index
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)), // Slide from bottom
+          child: Opacity(
+            opacity: value,
+            child: child,
+          ),
+        );
+      },
+      child: _buildUserListTile(user),
     );
   }
 

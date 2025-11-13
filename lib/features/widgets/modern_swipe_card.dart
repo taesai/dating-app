@@ -96,12 +96,15 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
 
       print('🎬 Init ${widget.user.name} (visible: ${widget.isVisible}): $url');
 
-      if (widget.isVisible) {
+      // Petit délai réduit pour laisser le player se préparer
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      if (widget.isVisible && mounted) {
         print('🔊 Carte VISIBLE - Volume 1.0 + Play pour ${widget.user.name}');
         WebVideoPlayer.setVolume(_playerKey, 1.0);
         WebVideoPlayer.play(_playerKey);
         _incrementViewIfNeeded();
-      } else {
+      } else if (mounted) {
         print('🔇 Carte INVISIBLE - Volume 0.0 + Pause pour ${widget.user.name}');
         WebVideoPlayer.setVolume(_playerKey, 0.0);
         WebVideoPlayer.pause(_playerKey);

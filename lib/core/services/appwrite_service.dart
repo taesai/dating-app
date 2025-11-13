@@ -639,7 +639,7 @@ class AppwriteService {
 
       if (reciprocalLike.documents.isNotEmpty) {
         // Create match
-        return await databases.createDocument(
+        final matchDoc = await databases.createDocument(
           databaseId: databaseId,
           collectionId: matchesCollectionId,
           documentId: ID.unique(),
@@ -650,8 +650,9 @@ class AppwriteService {
             // $createdAt géré automatiquement par Appwrite
           },
         );
+        return {'isMatch': true, 'matchDocument': matchDoc};
       }
-      return null;
+      return {'isMatch': false};
     } catch (e) {
       rethrow;
     }
@@ -668,7 +669,7 @@ class AppwriteService {
             Query.equal('user2Id', userId),
           ]),
           Query.equal('isActive', true),
-          Query.orderDesc('createdAt'),
+          Query.orderDesc('\$createdAt'), // Utiliser le champ système Appwrite
         ],
       );
     } catch (e) {

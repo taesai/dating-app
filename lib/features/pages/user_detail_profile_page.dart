@@ -211,8 +211,9 @@ class _UserDetailProfilePageState extends State<UserDetailProfilePage> {
 
     return GestureDetector(
       onVerticalDragEnd: (details) {
-        // Si on swipe vers le bas (velocity positive), revenir en arrière
-        if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
+        // Si on swipe vers le bas (velocity positive) OU vers le haut (velocity négative), revenir en arrière
+        if (details.primaryVelocity != null &&
+            (details.primaryVelocity! > 300 || details.primaryVelocity! < -300)) {
           Navigator.pop(context);
         }
       },

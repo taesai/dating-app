@@ -198,25 +198,38 @@ class _SwipePageState extends State<SwipePage> {
             ? (response['documents'] as List? ?? [])
             : response.documents;
 
+        // Collecter les videoIds
+        final videoIds = <String>[];
         for (var like in likes) {
           final likeData = like is Map ? like : like.data;
           final videoId = likeData['videoId'];
           if (videoId != null) {
             _likedVideoIds.add(videoId);
-
-            // Charger la vidéo pour obtenir le userId propriétaire
-            try {
-              final videoDoc = await _backendService.getVideo(videoId);
-              final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
-              final ownerId = videoData['userId'];
-              if (ownerId != null) {
-                _likedProfileIds.add(ownerId);
-              }
-            } catch (e) {
-              print('⚠️ Erreur chargement propriétaire vidéo $videoId: $e');
-            }
+            videoIds.add(videoId);
           }
         }
+
+        // Charger TOUS les propriétaires de vidéos en PARALLÈLE
+        final videoFutures = videoIds.map((videoId) =>
+          _backendService.getVideo(videoId).then((videoDoc) {
+            final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
+            final ownerId = videoData['userId'];
+            return ownerId as String?;
+          }).catchError((e) {
+            // Ignorer silencieusement les vidéos supprimées (404)
+            return null;
+          })
+        ).toList();
+
+        final ownerIds = await Future.wait(videoFutures);
+
+        // Ajouter les ownerIds valides
+        for (var ownerId in ownerIds) {
+          if (ownerId != null) {
+            _likedProfileIds.add(ownerId);
+          }
+        }
+
         print('📍 ${_likedVideoIds.length} vidéos déjà likées chargées');
         print('👤 ${_likedProfileIds.length} profils déjà likés');
       }
@@ -266,24 +279,24 @@ class _SwipePageState extends State<SwipePage> {
       final profileData = (currentUser is Map) ? currentUser : (currentUser.data is Map ? currentUser.data : {});
       _currentUser = DatingUser.fromJson(profileData);
 
-      // Charger le compteur de swipes
-      if (_currentUser!.isProfileApproved != true) {
-        // Pour utilisateurs non approuvés
-        _swipesRemaining = await _swipeCounter.getSwipesRemaining(_currentUserId!);
-        print('📊 Utilisateur non approuvé: $_swipesRemaining swipes restants');
-      } else if (_currentUser!.effectivePlan == 'free') {
-        // Pour utilisateurs FREE approuvés
-        final currentCount = await _usageTracking.getSwipesCount();
-        final limit = _usageTracking.getSwipeLimit('free');
-        _swipesRemaining = limit - currentCount;
-        print('📊 Utilisateur FREE: $_swipesRemaining swipes restants (sur $limit)');
-      }
-
-      // Charger les utilisateurs bloqués
-      await _loadBlockedUsers();
-
-      // Charger les vidéos déjà likées par l'utilisateur
-      await _loadLikedVideos();
+      // Charger TOUT en parallèle: compteur + bloqués + likés + vidéos
+      print('⚡ Chargement parallèle: compteur, bloqués, likés...');
+      await Future.wait([
+        // Compteur de swipes
+        () async {
+          if (_currentUser!.isProfileApproved != true) {
+            _swipesRemaining = await _swipeCounter.getSwipesRemaining(_currentUserId!);
+            print('📊 Utilisateur non approuvé: $_swipesRemaining swipes restants');
+          } else if (_currentUser!.effectivePlan == 'free') {
+            final currentCount = await _usageTracking.getSwipesCount();
+            final limit = _usageTracking.getSwipeLimit('free');
+            _swipesRemaining = limit - currentCount;
+            print('📊 Utilisateur FREE: $_swipesRemaining swipes restants (sur $limit)');
+          }
+        }(),
+        _loadBlockedUsers(),
+        _loadLikedVideos(),
+      ]);
 
       // Charger le premier batch de vidéos
       await _loadMoreVideos();
@@ -354,6 +367,8 @@ class _SwipePageState extends State<SwipePage> {
 
         print('📦 ${videosResponse.documents.length} vidéos reçues du backend');
 
+        // Pré-filtrer les vidéos avant de charger les profils
+        final candidateVideos = <VideoModel>[];
         for (var doc in videosResponse.documents) {
           try {
             final videoData = doc is Map ? doc : doc.data;
@@ -377,8 +392,31 @@ class _SwipePageState extends State<SwipePage> {
               continue;
             }
 
-            // Charger le propriétaire de la vidéo
-            final userDoc = await _backendService.getUserProfile(video.userId);
+            candidateVideos.add(video);
+          } catch (e) {
+            print('❌ Erreur parsing vidéo: $e');
+          }
+        }
+
+        // Charger TOUS les profils en PARALLÈLE au lieu de séquentiellement
+        print('👥 Chargement de ${candidateVideos.length} profils en parallèle...');
+        final userFutures = candidateVideos.map((video) =>
+          _backendService.getUserProfile(video.userId).catchError((e) {
+            print('❌ Erreur profil ${video.userId}: $e');
+            return null;
+          })
+        ).toList();
+
+        final userDocs = await Future.wait(userFutures);
+
+        // Traiter les résultats
+        for (int i = 0; i < candidateVideos.length; i++) {
+          try {
+            final video = candidateVideos[i];
+            final userDoc = userDocs[i];
+
+            if (userDoc == null) continue;
+
             final userData = userDoc is Map ? userDoc : userDoc.data;
             final owner = DatingUser.fromJson(userData);
 
@@ -406,7 +444,7 @@ class _SwipePageState extends State<SwipePage> {
             print('✅ Vidéo chargée: ${owner.name}');
 
           } catch (e) {
-            print('❌ Erreur chargement vidéo: $e');
+            print('❌ Erreur traitement vidéo: $e');
           }
         }
 
@@ -935,7 +973,7 @@ class _SwipePageState extends State<SwipePage> {
                       return const Center(child: Text('Utilisateur introuvable'));
                     }
                     return ModernSwipeCard(
-                        key: ValueKey(video.id), // Key unique pour chaque vidéo
+                        key: ValueKey('${video.id}-${video.likes}-${video.views}'), // Key change avec likes/views
                         user: owner,
                         video: video,
                         backendService: _backendService,

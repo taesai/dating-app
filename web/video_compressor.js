@@ -89,11 +89,27 @@ async function compressVideo(file, maxSizeMB = 2) {
           Bitrate: ${(bitrate / 1000).toFixed(0)} kbps
           Taille cible: ${maxSizeMB} MB`);
 
-        const stream = canvas.captureStream(25); // 25 fps
+        // Capturer le flux vidéo du canvas
+        const canvasStream = canvas.captureStream(25); // 25 fps
+        const videoTrack = canvasStream.getVideoTracks()[0];
 
-        // Créer MediaRecorder
+        // Capturer le flux audio de la vidéo originale
+        const audioStream = videoElement.captureStream();
+        const audioTrack = audioStream.getAudioTracks()[0];
+
+        // Combiner video et audio dans un seul stream
+        const stream = new MediaStream();
+        stream.addTrack(videoTrack);
+        if (audioTrack) {
+          stream.addTrack(audioTrack);
+          console.log('🔊 Piste audio ajoutée au stream');
+        } else {
+          console.log('⚠️ Aucune piste audio détectée dans la vidéo');
+        }
+
+        // Créer MediaRecorder avec video ET audio
         mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'video/webm;codecs=vp8',
+          mimeType: 'video/webm;codecs=vp8,opus',
           videoBitsPerSecond: bitrate,
         });
 
