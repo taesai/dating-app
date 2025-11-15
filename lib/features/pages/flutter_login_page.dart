@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:video_player/video_player.dart';
 import '../../core/services/backend_service.dart';
 import '../../core/config/backend_config.dart';
 import '../../core/providers/auth_provider.dart';
@@ -18,46 +18,48 @@ class FlutterLoginPage extends ConsumerStatefulWidget {
 class _FlutterLoginPageState extends ConsumerState<FlutterLoginPage> {
   final _backend = BackendService();
   Duration get loginTime => const Duration(milliseconds: 2250);
-  bool _imagesLoaded = false;
-
-  // Carousel d'images de fond
-  final List<String> _backgroundImages = [
-    'assets/images/background.jpg',
-    // 'assets/images/bg2.jpg',
-    // 'assets/images/bg3.jpg',
-    // 'assets/images/bg4.jpg',
-    // 'assets/images/bg5.jpg',
-    // 'assets/images/bg6.jpg',
-    // 'assets/images/bg7.jpg',
-    
-  ];
+  VideoPlayerController? _videoController;
+  bool _videoInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _preloadImages();
+    _initializeVideo();
   }
 
-  Future<void> _preloadImages() async {
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initializeVideo() async {
     try {
-      // Précharger toutes les images de fond
-      for (final imagePath in _backgroundImages) {
-        await precacheImage(AssetImage(imagePath), context);
-      }
-      // Précharger le logo aussi
-      await precacheImage(const AssetImage('assets/logo.png'), context);
+      // Utiliser une vidéo depuis Cloudinary pour éviter les problèmes de déploiement web
+      // Option 1 : Cloudinary (recommandé pour production)
+      _videoController = VideoPlayerController.networkUrl(
+        Uri.parse('https://res.cloudinary.com/dpfwub9rb/video/upload/v1763102325/dating_app/background_login.mp4'),
+      );
+
+      // Option 2 : Vidéo depuis assets (problèmes avec flutter build web)
+      // _videoController = VideoPlayerController.asset('assets/videos/background_login.mp4');
+
+      await _videoController!.initialize();
+      _videoController!.setLooping(true); // Boucle infinie
+      _videoController!.setVolume(0); // Muet
+      _videoController!.play();
 
       if (mounted) {
         setState(() {
-          _imagesLoaded = true;
+          _videoInitialized = true;
         });
       }
     } catch (e) {
-      print('⚠️ Erreur préchargement images: $e');
-      // Continuer quand même
+      print('⚠️ Erreur chargement vidéo background: $e');
+      // Continuer sans vidéo (fond dégradé uniquement)
       if (mounted) {
         setState(() {
-          _imagesLoaded = true;
+          _videoInitialized = false;
         });
       }
     }
@@ -293,80 +295,38 @@ class _FlutterLoginPageState extends ConsumerState<FlutterLoginPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Afficher un splash screen de chargement pendant que les images se chargent
-    if (!_imagesLoaded) {
-      return Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                isDark ? const Color(0xFF1A1A2E) : const Color(0xFFE91E63),
-                isDark ? const Color(0xFF16213E) : const Color(0xFF9C27B0),
-              ],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.favorite,
-                  size: 80,
-                  color: Colors.white.withOpacity(0.9),
-                ),
-                const SizedBox(height: 32),
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Chargement...',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Stack(
       children: [
-        // Carousel d'images de fond
-        CarouselSlider(
-          options: CarouselOptions(
-            height: MediaQuery.of(context).size.height,
-            viewportFraction: 1.0,
-            autoPlay: _backgroundImages.length > 1,
-            autoPlayInterval: const Duration(seconds: 5),
-            autoPlayAnimationDuration: const Duration(milliseconds: 1000),
-            autoPlayCurve: Curves.easeInOut,
-            pauseAutoPlayOnTouch: false,
-            enlargeCenterPage: false,
-          ),
-          items: _backgroundImages.map((imagePath) {
-            return Builder(
-              builder: (BuildContext context) {
-                return Container(
-                  width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(imagePath),
-                      fit: BoxFit.cover,
-                    ),
+        // Vidéo de fond ou dégradé
+        _videoInitialized && _videoController != null
+            ? SizedBox.expand(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: _videoController!.value.size.width,
+                    height: _videoController!.value.size.height,
+                    child: VideoPlayer(_videoController!),
                   ),
-                );
-              },
-            );
-          }).toList(),
+                ),
+              )
+            : Container(
+                // Fond dégradé de secours si pas de vidéo
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      isDark ? const Color(0xFF1A1A2E) : const Color(0xFFE91E63),
+                      isDark ? const Color(0xFF16213E) : const Color(0xFF9C27B0),
+                    ],
+                  ),
+                ),
+              ),
+        // Overlay semi-transparent pour rendre le formulaire plus lisible
+        Container(
+          color: Colors.black.withOpacity(0.3),
         ),
-        // FlutterLogin par-dessus avec transparence
+        // FlutterLogin par-dessus
         FlutterLogin(
       title: 'Dating App',
       logo: const AssetImage('assets/images/logo.jpg'), // Optionnel

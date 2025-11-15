@@ -15,8 +15,8 @@ class ThemeState {
   final bool isCustomTheme;
 
   const ThemeState({
-    this.themeMode = ThemeMode.light,
-    this.isDark = false,
+    this.themeMode = ThemeMode.dark, // Mode sombre par défaut
+    this.isDark = true, // Mode sombre par défaut
     this.genderThemeId = 'neutral',
     this.customPrimaryColor,
     this.customSecondaryColor,
@@ -57,7 +57,7 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
 
   /// Charger le thème sauvegardé
   Future<void> _loadTheme() async {
-    final isDark = _prefs.getBool(_themeKey) ?? false;
+    final isDark = _prefs.getBool(_themeKey) ?? true; // Mode sombre par défaut
     final genderThemeId = _prefs.getString(_genderThemeKey) ?? 'neutral';
     final isCustom = _prefs.getBool('is_custom_theme') ?? false;
 

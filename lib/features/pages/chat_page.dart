@@ -284,6 +284,14 @@ class _ChatPageState extends State<ChatPage> {
         onMessage: (payload) {
           try {
             final newMessage = ChatMessageModel.fromJson(payload);
+
+            // IMPORTANT: Filtrer les messages envoyés par nous-même pour éviter les doublons
+            // (ils sont déjà ajoutés manuellement dans _sendMessage)
+            if (newMessage.senderId == widget.currentUserId) {
+              print('📤 Message envoyé par nous-même, ignoré (déjà ajouté)');
+              return;
+            }
+
             if (mounted) {
               setState(() {
                 _messages.add(newMessage);
@@ -298,10 +306,8 @@ class _ChatPageState extends State<ChatPage> {
                   );
                 }
               });
-              // Mark as read if from other user
-              if (newMessage.senderId != widget.currentUserId) {
-                _markMessagesAsRead();
-              }
+              // Mark as read (only messages from other user arrive here now)
+              _markMessagesAsRead();
             }
           } catch (e) {
             print('❌ Erreur traitement message: $e');
@@ -651,8 +657,10 @@ class _ChatPageState extends State<ChatPage> {
                     Expanded(
                       child: TextField(
                         controller: _messageController,
+                        style: const TextStyle(color: Colors.black), // Texte en noir pour fond blanc
                         decoration: const InputDecoration(
                           hintText: 'Écrire un message...',
+                          hintStyle: TextStyle(color: Colors.grey), // Hint en gris
                           border: OutlineInputBorder(),
                           contentPadding:
                               EdgeInsets.symmetric(horizontal: 16, vertical: 8),

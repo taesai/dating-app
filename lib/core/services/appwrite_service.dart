@@ -669,7 +669,7 @@ class AppwriteService {
             Query.equal('user2Id', userId),
           ]),
           Query.equal('isActive', true),
-          Query.orderDesc('\$createdAt'), // Utiliser le champ système Appwrite
+          // Pas de tri - évite l'erreur si l'attribut createdAt n'existe pas
         ],
       );
     } catch (e) {

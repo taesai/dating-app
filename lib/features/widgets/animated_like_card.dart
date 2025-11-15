@@ -307,34 +307,35 @@ class _AnimatedLikeListCardState extends State<AnimatedLikeListCard>
       child: SlideTransition(
         position: _slideAnimation,
         child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          elevation: 2,
+          color: const Color(0xFF2A2A2A), // Fond gris foncé
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               child: Row(
                 children: [
-                  // Photo de profil
+                  // Photo de profil (plus petite)
                   Hero(
                     tag: 'like_${widget.user.id}',
                     child: Container(
-                      width: 80,
-                      height: 80,
+                      width: 56, // Réduit de 80 à 56
+                      height: 56, // Réduit de 80 à 56
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8), // Réduit de 12 à 8
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.pink.withOpacity(0.3),
-                            blurRadius: 8,
-                            spreadRadius: 1,
+                            color: Colors.pink.withOpacity(0.2), // Réduit opacité
+                            blurRadius: 4, // Réduit de 8 à 4
+                            spreadRadius: 0.5, // Réduit de 1 à 0.5
                           ),
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                         child: widget.user.photoUrlsFull.isNotEmpty
                             ? Image.network(
                                 widget.user.photoUrlsFull.first,
@@ -346,93 +347,51 @@ class _AnimatedLikeListCardState extends State<AnimatedLikeListCard>
                                     colors: [Colors.pink.shade300, Colors.purple.shade400],
                                   ),
                                 ),
-                                child: const Icon(Icons.person, color: Colors.white, size: 40),
+                                child: const Icon(Icons.person, color: Colors.white, size: 28), // Réduit de 40 à 28
                               ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12), // Réduit de 16 à 12
 
-                  // Informations
+                  // Informations (simplifiées)
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '${widget.user.name}, ${widget.user.age}',
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white, // Texte blanc
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (widget.user.city != null) ...[
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(
-                                widget.user.city!,
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                        ],
-                        if (widget.user.occupation != null) ...[
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.work, size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  widget.user.occupation!,
-                                  style: TextStyle(color: Colors.grey[600]),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
+                        // Une seule ligne d'info (city OU occupation)
+                        if (widget.user.city != null || widget.user.occupation != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.user.city ?? widget.user.occupation ?? '',
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ],
                     ),
                   ),
 
-                  // Bouton like
-                  TweenAnimationBuilder(
-                    tween: Tween<double>(begin: 0.8, end: 1.1),
-                    duration: const Duration(milliseconds: 800),
-                    curve: Curves.easeInOut,
-                    builder: (context, double scale, child) {
-                      return Transform.scale(
-                        scale: scale,
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Colors.pink, Colors.pink.shade700],
-                            ),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.pink.withOpacity(0.4),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.favorite,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      );
-                    },
-                    onEnd: () {
-                      if (mounted) setState(() {});
-                    },
+                  // Icône like (simplifiée)
+                  const Icon(
+                    Icons.favorite,
+                    color: Colors.pink,
+                    size: 22, // Réduit de 24 à 22
                   ),
                 ],
               ),

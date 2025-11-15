@@ -53,3 +53,4 @@ assets/videos/
 assets/images/bg*.jpg
 assets/images/background.jpg
 sites-dating-app-web-code.tar.gz
+node_modules/

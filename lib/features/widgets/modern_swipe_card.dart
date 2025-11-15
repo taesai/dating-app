@@ -155,14 +155,26 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
     // Photo de profil
     if (widget.user.photoUrls.isNotEmpty) {
       final photoUrl = widget.backendService.getPhotoUrl(widget.user.photoUrls.first);
-      return Image.network(
-        photoUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+      return Hero(
+        tag: 'user_photo_${widget.user.id}',
+        child: Image.network(
+          photoUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return _buildShimmerLoading();
+          },
+        ),
       );
     }
 
     return _buildPlaceholder();
+  }
+
+  /// Animation shimmer de chargement
+  Widget _buildShimmerLoading() {
+    return const _ShimmerLoadingWidget();
   }
 
   Widget _buildPlaceholder() {
@@ -282,23 +294,31 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
                 icon: _getSubscriptionIcon(widget.user.subscriptionPlan),
                 label: _getSubscriptionLabel(widget.user.subscriptionPlan),
                 color: _getSubscriptionColor(widget.user.subscriptionPlan),
+                heroTag: 'subscription_${widget.user.id}',
               ),
-              _buildStatChip(
-                icon: Icons.favorite,
-                label: '${widget.user.matchCount ?? 0}',
-                color: Colors.pink,
-              ),
-              _buildStatChip(
-                icon: Icons.people,
-                label: '${widget.user.likeCount ?? 0}',
-                color: Colors.purple,
-              ),
+              // Likes de la vidéo
+              if (widget.video != null)
+                _buildStatChip(
+                  icon: Icons.favorite,
+                  label: '${widget.video!.likes}',
+                  color: Colors.pink,
+                  heroTag: 'likes_${widget.video!.id}',
+                ),
+              // Vues de la vidéo
               if (widget.video != null)
                 _buildStatChip(
                   icon: Icons.visibility,
                   label: '${widget.video!.views}',
                   color: Colors.blue,
+                  heroTag: 'views_${widget.video!.id}',
                 ),
+              // Matches du profil
+              _buildStatChip(
+                icon: Icons.favorite_border,
+                label: '${widget.user.matchCount ?? 0}',
+                color: Colors.purple,
+                heroTag: 'matches_${widget.user.id}',
+              ),
             ],
           ),
 
@@ -308,24 +328,30 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
           Row(
             children: [
               Expanded(
-                child: Text(
-                  '${widget.user.name}, ${widget.user.age}',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: ResponsiveHelper.getFontSize(
-                      context,
-                      mobile: 28,
-                      tablet: 32,
-                      desktop: 36,
-                    ),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    shadows: const [
-                      Shadow(
-                        color: Colors.black45,
-                        blurRadius: 8,
+                child: Hero(
+                  tag: 'user_name_${widget.user.id}',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Text(
+                      '${widget.user.name}, ${widget.user.age}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: ResponsiveHelper.getFontSize(
+                          context,
+                          mobile: 28,
+                          tablet: 32,
+                          desktop: 36,
+                        ),
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black45,
+                            blurRadius: 8,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -489,37 +515,86 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
     required IconData icon,
     required String label,
     required Color color,
+    String? heroTag,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.3),
-            color.withOpacity(0.2),
+    final chip = Material(
+      color: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withOpacity(0.3),
+              color.withOpacity(0.2),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1.5,
-        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+    );
+
+    // Animer avec Hero si tag fourni
+    if (heroTag != null) {
+      return Hero(
+        tag: heroTag,
+        flightShuttleBuilder: (
+          BuildContext flightContext,
+          Animation<double> animation,
+          HeroFlightDirection flightDirection,
+          BuildContext fromHeroContext,
+          BuildContext toHeroContext,
+        ) {
+          // Animation personnalisée pendant le vol du Hero
+          return AnimatedBuilder(
+            animation: animation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: 1.0 + (animation.value * 0.2),
+                child: Transform.rotate(
+                  angle: animation.value * 0.1,
+                  child: Opacity(
+                    opacity: 0.7 + (animation.value * 0.3),
+                    child: chip,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        child: chip,
+      );
+    }
+
+    // Animation d'apparition avec TweenAnimationBuilder
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: chip,
+        );
+      },
     );
   }
 
@@ -759,6 +834,64 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
         if (mounted) {
           setState(() {});
         }
+      },
+    );
+  }
+}
+
+/// Widget d'animation shimmer pour le chargement des images
+class _ShimmerLoadingWidget extends StatefulWidget {
+  const _ShimmerLoadingWidget();
+
+  @override
+  State<_ShimmerLoadingWidget> createState() => _ShimmerLoadingWidgetState();
+}
+
+class _ShimmerLoadingWidgetState extends State<_ShimmerLoadingWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [
+                (_controller.value - 0.3).clamp(0.0, 1.0),
+                _controller.value.clamp(0.0, 1.0),
+                (_controller.value + 0.3).clamp(0.0, 1.0),
+              ],
+              colors: const [
+                Color(0xFFE0E0E0),
+                Color(0xFFF5F5F5),
+                Color(0xFFE0E0E0),
+              ],
+            ).createShader(bounds);
+          },
+          child: Container(
+            color: Colors.white,
+          ),
+        );
       },
     );
   }

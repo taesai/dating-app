@@ -29,11 +29,14 @@ class SwipePage extends StatefulWidget {
   State<SwipePage> createState() => _SwipePageState();
 }
 
-class _SwipePageState extends State<SwipePage> {
+class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixin {
   final BackendService _backendService = BackendService();
   final AppinioSwiperController _swiperController = AppinioSwiperController();
   final UsageTrackingService _usageTracking = UsageTrackingService();
   final SwipeCounterService _swipeCounter = SwipeCounterService();
+
+  @override
+  bool get wantKeepAlive => true; // Garder l'état en mémoire
 
   List<VideoModel> _videos = []; // Liste paginée des vidéos (max 10 à la fois)
   Map<String, DatingUser> _videoOwners = {}; // Map videoId -> propriétaire
@@ -56,6 +59,7 @@ class _SwipePageState extends State<SwipePage> {
   bool _isDisposing = false; // Flag pour bloquer les callbacks pendant dispose
   int _swipesRemaining = 20; // Swipes restants pour les utilisateurs non approuvés
   bool _showHeartParticles = false; // Animation de cœurs lors des likes
+  bool _isInitialized = false; // Flag pour éviter de recharger lors des rebuilds
 
   @override
   void initState() {
@@ -265,10 +269,37 @@ class _SwipePageState extends State<SwipePage> {
       if (!hasCommonLookingFor) return false;
     }
 
+    // Filtre par continent
+    if (prefs.continents.isNotEmpty) {
+      if (user.continent == null || !prefs.continents.contains(user.continent)) {
+        return false;
+      }
+    }
+
+    // Filtre par pays
+    if (prefs.countries.isNotEmpty) {
+      if (user.country == null || !prefs.countries.contains(user.country)) {
+        return false;
+      }
+    }
+
+    // Filtre par ville
+    if (prefs.cities.isNotEmpty) {
+      if (user.city == null || !prefs.cities.contains(user.city)) {
+        return false;
+      }
+    }
+
     return true;
   }
 
   Future<void> _loadUsers() async {
+    // Éviter de recharger si déjà initialisé (lors des rebuilds)
+    if (_isInitialized) {
+      print('✅ Déjà initialisé, pas de rechargement');
+      return;
+    }
+
     try {
       setState(() => _isLoading = true);
 
@@ -279,8 +310,34 @@ class _SwipePageState extends State<SwipePage> {
       final profileData = (currentUser is Map) ? currentUser : (currentUser.data is Map ? currentUser.data : {});
       _currentUser = DatingUser.fromJson(profileData);
 
-      // Charger TOUT en parallèle: compteur + bloqués + likés + vidéos
-      print('⚡ Chargement parallèle: compteur, bloqués, likés...');
+      print('🎬 Chargement des vidéos en PRIORITÉ...');
+      // PRIORITÉ 1: Charger les vidéos IMMÉDIATEMENT pour afficher le feed
+      await _loadMoreVideos();
+
+      // Afficher le feed DÈS que les vidéos sont chargées
+      setState(() {
+        _isLoading = false;
+        _isInitialized = true; // Marquer comme initialisé
+      });
+      print('✅ Feed affiché avec ${_videos.length} vidéos');
+
+      // PRIORITÉ 2: Charger les métadonnées en arrière-plan (non bloquant)
+      print('📊 Chargement des métadonnées en arrière-plan...');
+      _loadMetadataInBackground();
+    } catch (e) {
+      print('❌ Erreur _loadUsers: $e');
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
+  }
+
+  // Charger compteur, bloqués, likés en arrière-plan (non bloquant)
+  Future<void> _loadMetadataInBackground() async {
+    try {
       await Future.wait([
         // Compteur de swipes
         () async {
@@ -293,23 +350,15 @@ class _SwipePageState extends State<SwipePage> {
             _swipesRemaining = limit - currentCount;
             print('📊 Utilisateur FREE: $_swipesRemaining swipes restants (sur $limit)');
           }
+          if (mounted) setState(() {}); // Rafraîchir le compteur
         }(),
         _loadBlockedUsers(),
         _loadLikedVideos(),
       ]);
-
-      // Charger le premier batch de vidéos
-      await _loadMoreVideos();
-
-      setState(() => _isLoading = false);
+      print('✅ Métadonnées chargées');
     } catch (e) {
-      print('❌ Erreur _loadUsers: $e');
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
-      }
+      print('⚠️ Erreur chargement métadonnées: $e');
+      // Ne pas bloquer l'affichage si les métadonnées échouent
     }
   }
 
@@ -928,6 +977,8 @@ class _SwipePageState extends State<SwipePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Nécessaire pour AutomaticKeepAliveClientMixin
+
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -1299,70 +1350,6 @@ class _UserCardState extends State<_UserCard> with AutomaticKeepAliveClientMixin
                           child: Text(interest, style: const TextStyle(color: Colors.white)),
                         );
                       }).toList(),
-                    ),
-                  ],
-                  // Afficher les likes de la vidéo (informatif seulement, pas cliquable)
-                  if (widget.video != null) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: _hasLikedVideo
-                              ? const Color.fromARGB(155, 233, 30, 98)
-                              : Colors.black.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(25),
-                            border: Border.all(
-                              color: _hasLikedVideo ? Colors.white : Colors.pink,
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _hasLikedVideo ? Icons.favorite : Icons.favorite_border,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${widget.video!.likes}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(25),
-                            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.visibility, color: Colors.white, size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${widget.video!.views}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ],

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../core/models/dating_user.dart';
 import '../../core/models/video_model.dart';
 import '../../core/services/backend_service.dart';
 import '../../core/utils/page_transitions.dart';
+import '../../core/utils/responsive_helper.dart';
 import '../widgets/animated_like_card.dart';
 import 'dating_home_page.dart';
 import 'user_detail_profile_page.dart';
@@ -105,35 +108,40 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
       print('👥 ${filteredDocs.length} utilisateurs uniques à charger');
 
       // Charger TOUS les profils et vidéos en PARALLÈLE
-      final futures = filteredDocs.map((doc) async {
-        try {
-          final likeData = doc is Map ? doc : doc.data;
-          final userId = likeData['userId'];
-          final videoId = likeData['videoId'];
+      final List<Future<VideoLike?>> futures = [];
 
-          // Charger user et vidéo en parallèle
-          final results = await Future.wait([
-            _backend.getUserProfile(userId),
-            _backend.getVideo(videoId),
-          ]);
+      for (var doc in filteredDocs) {
+        final future = () async {
+          try {
+            final likeData = doc is Map ? doc : doc.data;
+            final userId = likeData['userId'];
+            final videoId = likeData['videoId'];
 
-          final userDoc = results[0];
-          final videoDoc = results[1];
+            // Charger user et vidéo en parallèle
+            final results = await Future.wait([
+              _backend.getUserProfile(userId),
+              _backend.getVideo(videoId),
+            ]);
 
-          final userData = userDoc is Map ? userDoc : userDoc.data;
-          final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
+            final userDoc = results[0];
+            final videoDoc = results[1];
 
-          return VideoLike(
-            id: likeData['\$id'] ?? likeData['id'] ?? '',
-            user: DatingUser.fromJson(userData),
-            video: VideoModel.fromJson(videoData),
-            createdAt: likeData['createdAt'] ?? '',
-          );
-        } catch (e) {
-          print('❌ Erreur chargement like reçu: $e');
-          return null;
-        }
-      }).toList();
+            final userData = userDoc is Map ? userDoc : userDoc.data;
+            final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
+
+            return VideoLike(
+              id: likeData['\$id'] ?? likeData['id'] ?? '',
+              user: DatingUser.fromJson(userData),
+              video: VideoModel.fromJson(videoData),
+              createdAt: likeData['createdAt'] ?? '',
+            );
+          } catch (e) {
+            print('❌ Erreur chargement like reçu: $e');
+            return null;
+          }
+        }();
+        futures.add(future);
+      }
 
       final results = await Future.wait(futures);
 
@@ -149,9 +157,15 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
       // Convertir la map en liste
       videoLikes = uniqueLikes.values.toList();
 
+      print('📋 Liste finale des likes reçus: ${videoLikes.length} éléments');
+      for (var like in videoLikes) {
+        print('   - ${like.user.name} (vidéo: ${like.video.id})');
+      }
+
       if (!mounted) return;
       setState(() {
         _videoLikesReceived = videoLikes;
+        print('✅ setState appelé: _videoLikesReceived contient ${_videoLikesReceived.length} likes');
       });
     } catch (e) {
       print('❌ Erreur _loadLikesReceived: $e');
@@ -173,21 +187,26 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
       print('📊 ${documents.length} likes envoyés à charger');
 
       // Charger TOUTES les vidéos en PARALLÈLE d'abord
-      final videoFutures = documents.map((doc) async {
-        try {
-          final likeData = doc is Map ? doc : doc.data;
-          final videoId = likeData['videoId'];
-          final videoDoc = await _backend.getVideo(videoId);
-          final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
-          return {
-            'likeData': likeData,
-            'video': VideoModel.fromJson(videoData),
-          };
-        } catch (e) {
-          print('❌ Erreur chargement vidéo: $e');
-          return null;
-        }
-      }).toList();
+      final List<Future<Map<String, dynamic>?>> videoFutures = [];
+
+      for (var doc in documents) {
+        final future = () async {
+          try {
+            final likeData = doc is Map ? doc : doc.data;
+            final videoId = likeData['videoId'];
+            final videoDoc = await _backend.getVideo(videoId);
+            final videoData = videoDoc is Map ? videoDoc : videoDoc.data;
+            return {
+              'likeData': likeData,
+              'video': VideoModel.fromJson(videoData),
+            };
+          } catch (e) {
+            print('❌ Erreur chargement vidéo: $e');
+            return null;
+          }
+        }();
+        videoFutures.add(future);
+      }
 
       final videoResults = await Future.wait(videoFutures);
 
@@ -204,26 +223,31 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
       print('👥 ${filteredResults.length} utilisateurs uniques à charger');
 
       // Charger TOUS les profils utilisateurs en PARALLÈLE
-      final userFutures = filteredResults.map((result) async {
-        try {
-          final video = result!['video'] as VideoModel;
-          final likeData = result['likeData'];
-          final userId = video.userId;
+      final List<Future<VideoLike?>> userFutures = [];
 
-          final userDoc = await _backend.getUserProfile(userId);
-          final userData = userDoc is Map ? userDoc : userDoc.data;
+      for (var result in filteredResults) {
+        final future = () async {
+          try {
+            final video = result!['video'] as VideoModel;
+            final likeData = result['likeData'];
+            final userId = video.userId;
 
-          return VideoLike(
-            id: likeData['\$id'] ?? likeData['id'] ?? '',
-            user: DatingUser.fromJson(userData),
-            video: video,
-            createdAt: likeData['createdAt'] ?? '',
-          );
-        } catch (e) {
-          print('❌ Erreur chargement profil: $e');
-          return null;
-        }
-      }).toList();
+            final userDoc = await _backend.getUserProfile(userId);
+            final userData = userDoc is Map ? userDoc : userDoc.data;
+
+            return VideoLike(
+              id: likeData['\$id'] ?? likeData['id'] ?? '',
+              user: DatingUser.fromJson(userData),
+              video: video,
+              createdAt: likeData['createdAt'] ?? '',
+            );
+          } catch (e) {
+            print('❌ Erreur chargement profil: $e');
+            return null;
+          }
+        }();
+        userFutures.add(future);
+      }
 
       final userResults = await Future.wait(userFutures);
 
@@ -239,9 +263,15 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
       // Convertir la map en liste
       videoLikes = uniqueLikes.values.toList();
 
+      print('📋 Liste finale des likes envoyés: ${videoLikes.length} éléments');
+      for (var like in videoLikes) {
+        print('   - ${like.user.name} (vidéo: ${like.video.id})');
+      }
+
       if (!mounted) return;
       setState(() {
         _videoLikesSent = videoLikes;
+        print('✅ setState appelé: _videoLikesSent contient ${_videoLikesSent.length} likes');
       });
     } catch (e) {
       print('❌ Erreur _loadLikesSent: $e');
@@ -394,17 +424,47 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
       );
     }
 
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = ResponsiveHelper.isTablet(context);
+        final isDesktop = ResponsiveHelper.isDesktop(context);
+
+        if (isTablet || isDesktop) {
+          // Layout tablette/desktop : Liste à gauche, carte à droite
+          return Row(
+            children: [
+              // Liste des likes
+              Expanded(
+                flex: 1,
+                child: _buildLikesList(_videoLikesReceived),
+              ),
+              // Carte avec markers
+              Expanded(
+                flex: 2,
+                child: _buildMap(_videoLikesReceived.map((like) => like.user).toList()),
+              ),
+            ],
+          );
+        }
+
+        // Layout mobile : Grille simple
+        return _buildLikesList(_videoLikesReceived);
+      },
+    );
+  }
+
+  Widget _buildLikesList(List<VideoLike> likes) {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200, // Largeur max par carte (responsive)
+        maxCrossAxisExtent: 200,
         childAspectRatio: 0.75,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
-      itemCount: _videoLikesReceived.length,
+      itemCount: likes.length,
       itemBuilder: (context, index) {
-        final videoLike = _videoLikesReceived[index];
+        final videoLike = likes[index];
         final user = videoLike.user;
 
         return AnimatedLikeGridCard(
@@ -438,10 +498,40 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
       );
     }
 
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = ResponsiveHelper.isTablet(context);
+        final isDesktop = ResponsiveHelper.isDesktop(context);
+
+        if (isTablet || isDesktop) {
+          // Layout tablette/desktop : Liste à gauche, carte à droite
+          return Row(
+            children: [
+              // Liste des likes
+              Expanded(
+                flex: 1,
+                child: _buildLikesSentList(),
+              ),
+              // Carte avec markers
+              Expanded(
+                flex: 2,
+                child: _buildMap(_videoLikesSent.map((like) => like.user).toList()),
+              ),
+            ],
+          );
+        }
+
+        // Layout mobile : Grille simple
+        return _buildLikesSentList();
+      },
+    );
+  }
+
+  Widget _buildLikesSentList() {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200, // Largeur max par carte (responsive)
+        maxCrossAxisExtent: 200,
         childAspectRatio: 0.75,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
@@ -457,6 +547,116 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
           index: index,
         );
       },
+    );
+  }
+
+  Widget _buildMap(List<DatingUser> users) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Calculer le centre et les limites basés sur les positions réelles des utilisateurs
+    LatLng center;
+    double zoom = 2.0; // Zoom par défaut (vue monde)
+
+    if (users.isEmpty) {
+      center = const LatLng(20.0, 0.0); // Vue monde centrée
+    } else if (users.length == 1) {
+      center = LatLng(users.first.latitude, users.first.longitude);
+      zoom = 12.0;
+    } else {
+      // Calculer le centre moyen
+      double avgLat = users.map((u) => u.latitude).reduce((a, b) => a + b) / users.length;
+      double avgLng = users.map((u) => u.longitude).reduce((a, b) => a + b) / users.length;
+      center = LatLng(avgLat, avgLng);
+
+      // Calculer un zoom approprié basé sur la dispersion des points
+      double minLat = users.map((u) => u.latitude).reduce((a, b) => a < b ? a : b);
+      double maxLat = users.map((u) => u.latitude).reduce((a, b) => a > b ? a : b);
+      double minLng = users.map((u) => u.longitude).reduce((a, b) => a < b ? a : b);
+      double maxLng = users.map((u) => u.longitude).reduce((a, b) => a > b ? a : b);
+
+      double latDiff = maxLat - minLat;
+      double lngDiff = maxLng - minLng;
+      double maxDiff = latDiff > lngDiff ? latDiff : lngDiff;
+
+      // Ajuster le zoom en fonction de la dispersion
+      if (maxDiff < 0.01) {
+        zoom = 14.0;
+      } else if (maxDiff < 0.1) {
+        zoom = 12.0;
+      } else if (maxDiff < 1.0) {
+        zoom = 8.0;
+      } else if (maxDiff < 5.0) {
+        zoom = 6.0;
+      } else if (maxDiff < 20.0) {
+        zoom = 4.0;
+      } else {
+        zoom = 2.0;
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+      ),
+      child: FlutterMap(
+        options: MapOptions(
+          initialCenter: center,
+          initialZoom: zoom,
+          minZoom: 1.0,
+          maxZoom: 18.0,
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: isDark
+                ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+                : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.dating.app',
+          ),
+          MarkerLayer(
+            markers: users.map((user) {
+              return Marker(
+                point: LatLng(user.latitude, user.longitude),
+                width: 50,
+                height: 50,
+                child: GestureDetector(
+                  onTap: () => _viewProfile(user),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.pink,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.pink.withOpacity(0.5),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.favorite,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 

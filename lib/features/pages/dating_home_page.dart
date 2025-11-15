@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:appwrite/appwrite.dart';
+import 'package:animations/animations.dart';
 import 'dart:html' as html;
 import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
@@ -27,6 +28,7 @@ import '../widgets/user_card_panel.dart';
 import '../widgets/animated_bottom_nav.dart';
 import '../widgets/simple_neumorphic_button.dart';
 import '../widgets/offline_indicator_widget.dart';
+import '../widgets/layout_transitioner.dart';
 
 class DatingHomePage extends ConsumerStatefulWidget {
   const DatingHomePage({super.key});
@@ -39,9 +41,9 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
   final BackendService _backend = BackendService();
   int _currentIndex = 0; // Commence sur les cartes swipables (maintenant index 0)
   DatingUser? _currentUser;
-  Key _swipePageKey = UniqueKey();
-  Key _profilePageKey = UniqueKey(); // Forcer le reload du profil
-  Key _matchesPageKey = UniqueKey(); // Forcer le reload des matches
+  Key _swipePageKey = const ValueKey('swipe_page');
+  Key _profilePageKey = const ValueKey('profile_page'); // Forcer le reload du profil
+  Key _matchesPageKey = const ValueKey('matches_page'); // Forcer le reload des matches
   int _matchesCount = 0;
   int _likesCount = 0;
   int _messagesCount = 0; // Compteur de messages non lus
@@ -56,6 +58,8 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
   StreamSubscription? _matchesStreamSubscription;
   StreamSubscription? _messagesStreamSubscription;
   bool _isDisposing = false; // Flag pour bloquer les callbacks pendant dispose
+  bool _countersLoaded = false; // Flag pour éviter de charger les compteurs plusieurs fois
+  String _previousLayoutType = 'mobile'; // Pour détecter la direction de transition
 
   List<Widget> get _pages => [
     SwipePage(key: _swipePageKey), // Cartes swipables = Découvrir
@@ -74,11 +78,16 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
 
   // Initialiser dans le bon ordre: flags PUIS compteurs
   Future<void> _initialize() async {
+    if (_countersLoaded) return; // Éviter de recharger si déjà chargé
+
     await _loadViewedFlags(); // D'ABORD charger les flags depuis localStorage
     _loadCurrentUser();
-    _loadMatchesCount(); // Les compteurs respecteront les flags déjà chargés
-    _loadLikesCount();
-    _loadMessagesCount(); // Charger les messages non lus
+    await Future.wait([
+      _loadMatchesCount(), // Charger en parallèle pour plus de rapidité
+      _loadLikesCount(),
+      _loadMessagesCount(),
+    ]);
+    _countersLoaded = true; // Marquer comme chargé
     _subscribeToLikesAndMatches(); // Écouter les likes et matches en temps réel
 
     // Afficher le tutoriel si première visite
@@ -371,8 +380,22 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
       final user = await _backend.getCurrentUser();
       final userId = user is Map ? user['id'] : user.$id;
       final matchesDoc = await _backend.getMatches(userId);
-      final count = matchesDoc.documents.length;
-      print('✅ Matches: $count (déjà vu: $_matchesViewed)');
+
+      // Dédoublonner et compter uniquement les matches avec profils valides
+      final Map<String, bool> uniqueMatches = {};
+      for (var matchDoc in matchesDoc.documents) {
+        final matchData = matchDoc is Map ? matchDoc : matchDoc.data;
+        final user1Id = matchData['user1Id'];
+        final user2Id = matchData['user2Id'];
+        final otherUserId = (user1Id == userId) ? user2Id : user1Id;
+
+        if (!uniqueMatches.containsKey(otherUserId)) {
+          uniqueMatches[otherUserId] = true;
+        }
+      }
+
+      final count = uniqueMatches.length;
+      print('✅ Matches valides: $count (déjà vu: $_matchesViewed)');
       if (mounted) {
         setState(() {
           // Si déjà vu, afficher 0. Sinon afficher le nombre réel
@@ -451,12 +474,16 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
   void refreshCounters() {
     if (!mounted) return;
     print('🔄 Rafraîchissement des compteurs likes/matches');
-    _loadLikesCount();
-    _loadMatchesCount();
-    // Force le rebuild pour mettre à jour les badges
-    if (mounted) {
-      setState(() {});
-    }
+    Future.wait([
+      _loadLikesCount(),
+      _loadMatchesCount(),
+      _loadMessagesCount(),
+    ]).then((_) {
+      // Force le rebuild pour mettre à jour les badges
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   void _refreshProfileCounters() {
@@ -482,12 +509,12 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
     if (result == true) {
       // Recharger le profil après upload
       await _loadCurrentUser();
-      // Rafraîchir les cartes swipables ET la page de profil
+      // Aller sur l'onglet profil - les pages se rafraîchiront automatiquement
       setState(() {
-        _swipePageKey = UniqueKey(); // Force le rebuild des cartes
-        _profilePageKey = UniqueKey(); // Force le rebuild du profil
         _currentIndex = 4; // Aller sur l'onglet profil pour voir la nouvelle vidéo (index 4 maintenant)
       });
+      // Note: Pas besoin de changer les Keys, IndexedStack garde les pages en mémoire
+      // et elles se rafraîchiront via leurs propres mécanismes (pull-to-refresh, etc.)
     }
   }
 
@@ -547,52 +574,59 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
         children: [
           const OfflineIndicatorWidget(),
           Expanded(
-            child: isDesktop
-                ? _buildDesktopLayout(context)
-                : isTablet
-                    ? _buildTabletLayout(context)
-                    : _buildMobileLayout(context),
+            child: LayoutTransitioner(
+              layoutType: isDesktop ? 0 : isTablet ? 1 : 2,
+              desktopChild: _buildDesktopLayout(context),
+              tabletChild: _buildTabletLayout(context),
+              mobileChild: _buildMobileLayout(context),
+            ),
           ),
         ],
       ),
-      floatingActionButton: isMobile ? SimpleNeumorphicButton(
-        onPressed: _navigateToUploadVideo,
-        icon: Icons.videocam,
-        size: 60,
-      ) : null,
+      floatingActionButton: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return ScaleTransition(
+            scale: animation,
+            child: FadeTransition(opacity: animation, child: child),
+          );
+        },
+        child: isMobile
+            ? SimpleNeumorphicButton(
+                key: const ValueKey('fab'),
+                onPressed: _navigateToUploadVideo,
+                icon: Icons.videocam,
+                size: 60,
+              )
+            : const SizedBox.shrink(key: ValueKey('no_fab')),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       extendBody: isMobile,
-      bottomNavigationBar: isMobile ? _buildBottomNavBar(context) : null,
+      bottomNavigationBar: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeInOut,
+        switchOutCurve: Curves.easeInOut,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          );
+        },
+        child: isMobile
+            ? _buildBottomNavBar(context)
+            : const SizedBox.shrink(key: ValueKey('no_navbar')),
+      ),
     );
   }
 
   Widget _buildMobileLayout(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 350),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        // Animation de scale et fade
-        final scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-        );
-
-        final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeIn),
-        );
-
-        return ScaleTransition(
-          scale: scaleAnimation,
-          child: FadeTransition(
-            opacity: fadeAnimation,
-            child: child,
-          ),
-        );
-      },
-      child: KeyedSubtree(
-        key: ValueKey<int>(_currentIndex),
-        child: _pages[_currentIndex],
-      ),
+    // Utiliser IndexedStack au lieu de AnimatedSwitcher pour garder l'état des pages
+    return IndexedStack(
+      index: _currentIndex,
+      children: _pages,
     );
   }
 
@@ -715,28 +749,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
 
   /// Contenu du feed principal en mode desktop
   Widget _buildDesktopFeed() {
-    // Pour Likes et Matches, on affiche un placeholder car la liste est dans le panneau gauche
-    if (_currentIndex == 1 || _currentIndex == 3) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _currentIndex == 1 ? Icons.favorite : Icons.favorite_border,
-              size: 100,
-              color: Colors.grey[300],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _currentIndex == 1 ? 'Consultez vos likes à gauche' : 'Consultez vos matchs à gauche',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Pour les autres pages, afficher normalement
+    // Afficher toutes les pages normalement (y compris Likes et Matches avec leur layout responsive)
     return IndexedStack(
       index: _currentIndex,
       children: _pages,
