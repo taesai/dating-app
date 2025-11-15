@@ -69,7 +69,19 @@ class CustomPageRoute<T> extends PageRouteBuilder<T> {
             begin: const Offset(0.0, 1.0),
             end: Offset.zero,
           ).animate(curvedAnimation),
-          child: child,
+          child: ScaleTransition(
+            scale: Tween<double>(
+              begin: 0.85,
+              end: 1.0,
+            ).animate(curvedAnimation),
+            child: FadeTransition(
+              opacity: Tween<double>(
+                begin: 0.0,
+                end: 1.0,
+              ).animate(curvedAnimation),
+              child: child,
+            ),
+          ),
         );
 
       case TransitionType.slideDown:
@@ -266,8 +278,8 @@ extension NavigationExtension on BuildContext {
       CustomPageRoute(
         page: page,
         transitionType: TransitionType.slideUp,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeOutCubic,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeOutBack,
       ),
     );
   }

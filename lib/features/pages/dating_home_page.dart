@@ -61,7 +61,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
   bool _countersLoaded = false; // Flag pour éviter de charger les compteurs plusieurs fois
   String _previousLayoutType = 'mobile'; // Pour détecter la direction de transition
 
-  List<Widget> get _pages => [
+  late final List<Widget> _pages = [
     SwipePage(key: _swipePageKey), // Cartes swipables = Découvrir
     const LikesPage(), // Likes reçus
     const UsersMapPage(),

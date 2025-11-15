@@ -454,23 +454,71 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
   }
 
   Widget _buildLikesList(List<VideoLike> likes) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: likes.length,
-      itemBuilder: (context, index) {
-        final videoLike = likes[index];
-        final user = videoLike.user;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = ResponsiveHelper.isTablet(context);
+        final isDesktop = ResponsiveHelper.isDesktop(context);
 
-        return AnimatedLikeGridCard(
-          user: user,
-          onTap: () => _viewProfile(user),
-          index: index,
+        // En mode tablette/desktop avec carte, afficher une liste verticale compacte
+        if ((isTablet || isDesktop) && constraints.maxWidth < 400) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: likes.length,
+            itemBuilder: (context, index) {
+              final videoLike = likes[index];
+              final user = videoLike.user;
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: user.photoUrlsFull.isNotEmpty
+                        ? NetworkImage(user.photoUrlsFull.first)
+                        : null,
+                    child: user.photoUrlsFull.isEmpty
+                        ? const Icon(Icons.person, size: 20)
+                        : null,
+                  ),
+                  title: Text(
+                    user.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${user.age} ans',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  onTap: () => _viewProfile(user),
+                ),
+              );
+            },
+          );
+        }
+
+        // En mode mobile ou desktop plein écran, afficher une grille
+        return GridView.builder(
+          padding: const EdgeInsets.all(8),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            childAspectRatio: 0.75,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: likes.length,
+          itemBuilder: (context, index) {
+            final videoLike = likes[index];
+            final user = videoLike.user;
+
+            return AnimatedLikeGridCard(
+              user: user,
+              onTap: () => _viewProfile(user),
+              index: index,
+            );
+          },
         );
       },
     );
@@ -528,23 +576,71 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
   }
 
   Widget _buildLikesSentList() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: _videoLikesSent.length,
-      itemBuilder: (context, index) {
-        final videoLike = _videoLikesSent[index];
-        final user = videoLike.user;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = ResponsiveHelper.isTablet(context);
+        final isDesktop = ResponsiveHelper.isDesktop(context);
 
-        return AnimatedLikeGridCard(
-          user: user,
-          onTap: () => _viewProfile(user),
-          index: index,
+        // En mode tablette/desktop avec carte, afficher une liste verticale compacte
+        if ((isTablet || isDesktop) && constraints.maxWidth < 400) {
+          return ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: _videoLikesSent.length,
+            itemBuilder: (context, index) {
+              final videoLike = _videoLikesSent[index];
+              final user = videoLike.user;
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: user.photoUrlsFull.isNotEmpty
+                        ? NetworkImage(user.photoUrlsFull.first)
+                        : null,
+                    child: user.photoUrlsFull.isEmpty
+                        ? const Icon(Icons.person, size: 20)
+                        : null,
+                  ),
+                  title: Text(
+                    user.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${user.age} ans',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  onTap: () => _viewProfile(user),
+                ),
+              );
+            },
+          );
+        }
+
+        // En mode mobile ou desktop plein écran, afficher une grille
+        return GridView.builder(
+          padding: const EdgeInsets.all(8),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            childAspectRatio: 0.75,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: _videoLikesSent.length,
+          itemBuilder: (context, index) {
+            final videoLike = _videoLikesSent[index];
+            final user = videoLike.user;
+
+            return AnimatedLikeGridCard(
+              user: user,
+              onTap: () => _viewProfile(user),
+              index: index,
+            );
+          },
         );
       },
     );
