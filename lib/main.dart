@@ -11,6 +11,7 @@ import 'features/pages/dating_home_page.dart';
 import 'features/pages/flutter_login_page.dart';
 import 'features/pages/migration_page.dart';
 import 'features/pages/upgrade_user_page.dart';
+import 'features/pages/splash_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -121,11 +122,28 @@ class MyApp extends ConsumerWidget {
 }
 
 /// Wrapper qui gère l'authentification avec Riverpod
-class AuthWrapper extends ConsumerWidget {
+class AuthWrapper extends ConsumerStatefulWidget {
   const AuthWrapper({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends ConsumerState<AuthWrapper> {
+  bool _showSplash = true;
+
+  void _completeSplash() {
+    setState(() {
+      _showSplash = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_showSplash) {
+      return SplashScreen(onComplete: _completeSplash);
+    }
+
     // Attendre que SharedPreferences soit prêt
     final prefsAsync = ref.watch(sharedPreferencesProvider);
 

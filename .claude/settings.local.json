@@ -41,7 +41,8 @@
       "Bash(dart migrate_videos_to_cloudinary.dart:*)",
       "Bash(dart:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Video upload improvements and Cloudinary enhancements\n\n- Fix video deletion to support both Cloudinary and Appwrite Storage\n- Add orphaned video documents cleanup script\n- Add video migration script from Appwrite to Cloudinary\n- Improve video picker to load bytes on web for proper upload\n- Add debug logs for video selection troubleshooting\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Video upload improvements and Cloudinary enhancements\n\n- Fix video deletion to support both Cloudinary and Appwrite Storage\n- Add orphaned video documents cleanup script\n- Add video migration script from Appwrite to Cloudinary\n- Improve video picker to load bytes on web for proper upload\n- Add debug logs for video selection troubleshooting\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
