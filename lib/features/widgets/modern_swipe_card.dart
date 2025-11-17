@@ -5,6 +5,7 @@ import '../../core/models/video_model.dart';
 import '../../core/services/backend_service.dart';
 import '../../core/widgets/web_video_player.dart';
 import '../../core/utils/responsive_helper.dart';
+import '../../core/widgets/rive_loader.dart';
 
 /// Carte de profil moderne avec design élégant
 class ModernSwipeCard extends StatefulWidget {
@@ -37,6 +38,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
   final GlobalKey _playerKey = GlobalKey();
   bool _isVideoInitialized = false;
   String? _videoUrl;
+  bool _isLoading = false;
   bool _showInfo = false;
 
   @override
@@ -49,6 +51,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
     super.initState();
 
     if (widget.video != null) {
+      setState(() => _isLoading = true);
       _initializeVideo();
     }
   }
@@ -59,6 +62,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
 
     if (oldWidget.video?.id != widget.video?.id) {
       setState(() {
+        _isLoading = widget.video != null;
         _isVideoInitialized = false;
         _videoUrl = null;
       });
@@ -90,6 +94,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
       final url = await widget.backendService.getVideoUrl(widget.video!.fileId);
 
       setState(() {
+        _isLoading = false;
         _videoUrl = url;
         _isVideoInitialized = true;
       });
@@ -110,6 +115,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
         WebVideoPlayer.pause(_playerKey);
       }
     } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
       print('❌ Erreur initialisation vidéo pour ${widget.user.name}: $e');
     }
   }
@@ -142,13 +148,32 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
   }
 
   Widget _buildBackground() {
+    // Si une vidéo existe mais n'est pas encore initialisée, afficher le loader
+    if (_isLoading) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.pink.shade300,
+              Colors.purple.shade400,
+            ],
+          ),
+        ),
+        child: const Center(
+          child: RiveLoader(size: 80),
+        ),
+      );
+    }
+
     if (_isVideoInitialized && _videoUrl != null && widget.video != null) {
       return WebVideoPlayer(
         key: _playerKey,
         videoUrl: _videoUrl!,
         autoPlay: widget.isVisible,
         loop: true,
-        
+
       );
     }
 
