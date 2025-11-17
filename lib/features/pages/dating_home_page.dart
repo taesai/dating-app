@@ -29,6 +29,7 @@ import '../widgets/animated_bottom_nav.dart';
 import '../widgets/simple_neumorphic_button.dart';
 import '../widgets/offline_indicator_widget.dart';
 import '../widgets/layout_transitioner.dart';
+import '../../core/widgets/rive_loader.dart';
 
 class DatingHomePage extends ConsumerStatefulWidget {
   const DatingHomePage({super.key});
@@ -87,7 +88,11 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
       _loadLikesCount(),
       _loadMessagesCount(),
     ]);
-    _countersLoaded = true; // Marquer comme chargé
+    if (mounted) {
+      setState(() {
+        _countersLoaded = true;
+      });
+    } // Marquer comme chargé
     _subscribeToLikesAndMatches(); // Écouter les likes et matches en temps réel
 
     // Afficher le tutoriel si première visite
@@ -570,17 +575,29 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          const OfflineIndicatorWidget(),
-          Expanded(
-            child: LayoutTransitioner(
-              layoutType: isDesktop ? 0 : isTablet ? 1 : 2,
-              desktopChild: _buildDesktopLayout(context),
-              tabletChild: _buildTabletLayout(context),
-              mobileChild: _buildMobileLayout(context),
-            ),
+          Column(
+            children: [
+              const OfflineIndicatorWidget(),
+              Expanded(
+                child: LayoutTransitioner(
+                  layoutType: isDesktop ? 0 : isTablet ? 1 : 2,
+                  desktopChild: _buildDesktopLayout(context),
+                  tabletChild: _buildTabletLayout(context),
+                  mobileChild: _buildMobileLayout(context),
+                ),
+              ),
+            ],
           ),
+          // Loader pendant l'initialisation
+          if (!_countersLoaded)
+            Container(
+              color: Colors.black,
+              child: const Center(
+                child: RiveLoader(size: 80),
+              ),
+            ),
         ],
       ),
       floatingActionButton: AnimatedSwitcher(
