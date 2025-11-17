@@ -652,3 +652,23 @@ class _FilteredDocumentList {
 
   _FilteredDocumentList(this.documents);
 }
+
+  /// Rechercher des utilisateurs par géographie (continent, pays, ville)
+  Future<dynamic> getUsersByGeography({
+    List<String>? continents,
+    List<String>? countries,
+    List<String>? cities,
+  }) async {
+    if (BackendConfig.USE_LOCAL_BACKEND) {
+      return await local.listDocuments(
+        databaseId: '',
+        collectionId: 'users',
+      );
+    } else {
+      return await appwrite.getUsersByGeography(
+        continents: continents,
+        countries: countries,
+        cities: cities,
+      );
+    }
+  }

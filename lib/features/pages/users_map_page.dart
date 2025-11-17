@@ -20,7 +20,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
 
   List<DatingUser> _nearbyUsers = [];
   DatingUser? _currentUser;
-  double _radiusKm = 100.0; // Rayon initial de 50 km (sera remplacé par la valeur sauvegardée)
+  double _radiusKm = 10000.0; // Rayon initial de 10000 km pour recherche mondiale
   bool _isLoading = true;
   bool _isLoadingUsers = false;
   Timer? _debounceTimer;
@@ -35,14 +35,12 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
 
     // Initialiser l'animation de zoom spectaculaire
     _zoomAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 3500), // Animation plus lente pour effet dramatique
+      duration: const Duration(milliseconds: 2000), // Animation plus lente pour effet dramatique
       vsync: this,
     );
 
-    // Réinitialiser l'animation au cas où la page serait reconstruite
-    _zoomAnimationController.reset();
     // Zoom depuis très haut (vue du monde entier) jusqu'au niveau détaillé
-    _zoomAnimation = Tween<double>(begin: 1.5, end: 8.0).animate(
+    _zoomAnimation = Tween<double>(begin: 2.0, end: 11.0).animate(
       CurvedAnimation(
         parent: _zoomAnimationController,
         curve: Curves.easeInOutCubic, // Courbe douce et élégante

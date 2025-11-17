@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../core/widgets/rive_loader.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'dart:async';
-import '../../core/widgets/rive_loader.dart';
 import '../../core/models/chat_message_model.dart';
-import '../../core/widgets/rive_loader.dart';
 import '../../core/models/dating_user.dart';
-import '../../core/widgets/rive_loader.dart';
 import '../../core/models/match_model.dart';
-import '../../core/widgets/rive_loader.dart';
 import '../../core/services/backend_service.dart';
-import '../../core/widgets/rive_loader.dart';
 import '../../core/config/feature_flags.dart';
-import '../../core/widgets/rive_loader.dart';
 import '../widgets/typing_indicator.dart';
-import '../../core/widgets/rive_loader.dart';
 import '../widgets/icebreaker_widget.dart';
-import '../../core/widgets/rive_loader.dart';
+
 
 class ChatPage extends StatefulWidget {
   final MatchModel match;
@@ -559,7 +551,7 @@ class _ChatPageState extends State<ChatPage> {
           // Messages list
           Expanded(
             child: _isLoading
-                ? const Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60))
+                ?  Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60))
                 : _messages.isEmpty
                     ? SingleChildScrollView(
                         child: Column(

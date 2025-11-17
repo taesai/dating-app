@@ -771,7 +771,7 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60)));
+      return  Scaffold(body: Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60)));
     }
 
     return Scaffold(

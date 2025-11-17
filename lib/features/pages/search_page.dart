@@ -18,7 +18,7 @@ class _SearchPageState extends State<SearchPage> {
 
   // Filtres de recherche basiques
   RangeValues _ageRange = const RangeValues(18, 50);
-  double _maxDistance = 50.0;
+  double _maxDistance = 10000.0; // 10000km pour recherche mondiale
   String? _selectedGender;
   String? _selectedEducation;
   String? _selectedOccupation;
