@@ -984,7 +984,14 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
     super.build(context); // Nécessaire pour AutomaticKeepAliveClientMixin
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: RiveLoader()));
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.pink,
+            strokeWidth: 3,
+          ),
+        ),
+      );
     }
 
     if (_videos.isEmpty) {
