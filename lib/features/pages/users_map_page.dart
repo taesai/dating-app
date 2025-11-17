@@ -39,6 +39,8 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
       vsync: this,
     );
 
+    // Réinitialiser l'animation au cas où la page serait reconstruite
+    _zoomAnimationController.reset();
     // Zoom depuis très haut (vue du monde entier) jusqu'au niveau détaillé
     _zoomAnimation = Tween<double>(begin: 1.5, end: 8.0).animate(
       CurvedAnimation(

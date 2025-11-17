@@ -1019,7 +1019,7 @@ class _MapPanelWidgetState extends State<_MapPanelWidget> {
     if (_isLoading || _currentUser == null) {
       return Container(
         color: Colors.grey[100],
-        child: const Center(child: CircularProgressIndicator()),
+        child: Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60)),
       );
     }
 

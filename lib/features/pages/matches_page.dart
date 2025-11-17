@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../core/widgets/rive_loader.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/models/dating_user.dart';
@@ -277,7 +278,7 @@ class _MatchesPageState extends State<MatchesPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: RiveLoader()));
+      return const Scaffold(body: Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60)));
     }
 
     return Scaffold(

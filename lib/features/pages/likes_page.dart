@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/widgets/rive_loader.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:flutter_map/flutter_map.dart';
 import '../../core/widgets/rive_loader.dart';
 import 'package:latlong2/latlong.dart';
@@ -770,7 +771,7 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: RiveLoader()));
+      return const Scaffold(body: Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60)));
     }
 
     return Scaffold(

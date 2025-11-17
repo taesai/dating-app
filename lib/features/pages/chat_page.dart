@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/widgets/rive_loader.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'dart:async';
 import '../../core/widgets/rive_loader.dart';
 import '../../core/models/chat_message_model.dart';
@@ -558,7 +559,7 @@ class _ChatPageState extends State<ChatPage> {
           // Messages list
           Expanded(
             child: _isLoading
-                ? const Center(child: RiveLoader())
+                ? const Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60))
                 : _messages.isEmpty
                     ? SingleChildScrollView(
                         child: Column(
