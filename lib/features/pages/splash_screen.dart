@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
                   width: 250,
                   height: 250,
                   child: RiveAnimation.asset(
-                    'assets/animations/16305-30720-heart.riv',
+                    'assets/animations/earth-map.riv',
                     fit: BoxFit.contain,
                     onInit: (artboard) {
                       print('✅ Animation Rive chargée avec succès');
