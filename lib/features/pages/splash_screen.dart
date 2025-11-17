@@ -118,15 +118,8 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 48),
                 // Indicateur de chargement
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: RiveLoader(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withOpacity(0.9),
-                    ),
-                    strokeWidth: 2.5,
-                  ),
+                const RiveLoader(
+                  size: 60,
                 ),
               ],
             ),
