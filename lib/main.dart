@@ -12,6 +12,7 @@ import 'features/pages/flutter_login_page.dart';
 import 'features/pages/migration_page.dart';
 import 'features/pages/upgrade_user_page.dart';
 import 'features/pages/splash_screen.dart';
+import 'core/widgets/rive_loader.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -52,7 +53,7 @@ class MyApp extends ConsumerWidget {
     return prefsAsync.when(
       loading: () => const MaterialApp(
         home: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(child: RiveLoader()),
         ),
       ),
       error: (error, stack) => MaterialApp(
@@ -150,7 +151,7 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
     return prefsAsync.when(
       loading: () => const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(),
+          child: RiveLoader(),
         ),
       ),
       error: (error, stack) => Scaffold(
@@ -165,7 +166,7 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
         if (authState.isLoading) {
           return const Scaffold(
             body: Center(
-              child: CircularProgressIndicator(),
+              child: RiveLoader(),
             ),
           );
         }

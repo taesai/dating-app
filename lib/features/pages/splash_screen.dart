@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' hide LinearGradient;
 import 'dart:async';
+import '../../core/widgets/rive_loader.dart';
 
 /// Splash screen avec animation Rive
 class SplashScreen extends StatefulWidget {
@@ -120,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
                 SizedBox(
                   width: 40,
                   height: 40,
-                  child: CircularProgressIndicator(
+                  child: RiveLoader(
                     valueColor: AlwaysStoppedAnimation<Color>(
                       Colors.white.withOpacity(0.9),
                     ),

@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'package:flutter_map/flutter_map.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'package:latlong2/latlong.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/models/dating_user.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/models/video_model.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/services/backend_service.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/utils/page_transitions.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/utils/responsive_helper.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../widgets/animated_like_card.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'dating_home_page.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'user_detail_profile_page.dart';
+import '../../core/widgets/rive_loader.dart';
 
 class LikesPage extends StatefulWidget {
   const LikesPage({super.key});
@@ -759,7 +770,7 @@ class _LikesPageState extends State<LikesPage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: RiveLoader()));
     }
 
     return Scaffold(

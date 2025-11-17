@@ -1,26 +1,49 @@
 import 'dart:async';
+import '../../core/widgets/rive_loader.dart';
 import 'package:flutter/material.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'package:appwrite/appwrite.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/models/dating_user.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/models/video_model.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/models/search_preferences.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/services/backend_service.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/services/appwrite_service.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/services/usage_tracking_service.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/services/swipe_counter_service.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/config/feature_flags.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/widgets/web_video_player.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../../core/utils/page_transitions.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../widgets/pending_approval_banner.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../widgets/modern_swipe_card.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../widgets/swipe_action_buttons.dart';
+import '../../core/widgets/rive_loader.dart';
 import '../widgets/heart_particles_animation.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'user_detail_profile_page.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'dating_home_page.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'search_page.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'dart:html' as html;
+import '../../core/widgets/rive_loader.dart';
 import 'dart:convert';
+import '../../core/widgets/rive_loader.dart';
 
 class SwipePage extends StatefulWidget {
   const SwipePage({super.key});
@@ -980,7 +1003,7 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
     super.build(context); // Nécessaire pour AutomaticKeepAliveClientMixin
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: RiveLoader()));
     }
 
     if (_videos.isEmpty) {

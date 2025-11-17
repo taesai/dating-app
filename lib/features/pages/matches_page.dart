@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import '../../core/widgets/rive_loader.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/models/dating_user.dart';
 import '../../core/models/match_model.dart';
@@ -276,7 +277,7 @@ class _MatchesPageState extends State<MatchesPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: RiveLoader()));
     }
 
     return Scaffold(
