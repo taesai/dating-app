@@ -1,5 +1,6 @@
 import 'dart:async';
 import '../../core/widgets/rive_loader.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:appwrite/appwrite.dart';
@@ -984,11 +985,11 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
     super.build(context); // Nécessaire pour AutomaticKeepAliveClientMixin
 
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
-          child: CircularProgressIndicator(
+          child: LoadingAnimationWidget.dotsTriangle(
             color: Colors.pink,
-            strokeWidth: 3,
+            size: 80,
           ),
         ),
       );

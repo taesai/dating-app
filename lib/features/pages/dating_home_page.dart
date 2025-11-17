@@ -29,6 +29,7 @@ import '../widgets/animated_bottom_nav.dart';
 import '../widgets/simple_neumorphic_button.dart';
 import '../widgets/offline_indicator_widget.dart';
 import '../widgets/layout_transitioner.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../core/widgets/rive_loader.dart';
 
 class DatingHomePage extends ConsumerStatefulWidget {
@@ -594,10 +595,10 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
           if (!_countersLoaded)
             Container(
               color: Colors.black,
-              child: const Center(
-                child: CircularProgressIndicator(
+              child: Center(
+                child: LoadingAnimationWidget.dotsTriangle(
                   color: Colors.pink,
-                  strokeWidth: 3,
+                  size: 80,
                 ),
               ),
             ),
