@@ -644,14 +644,6 @@ class BackendService {
       );
     }
   }
-}
-
-// Classe helper pour retourner une liste filtrée avec la bonne structure
-class _FilteredDocumentList {
-  final List<dynamic> documents;
-
-  _FilteredDocumentList(this.documents);
-}
 
   /// Rechercher des utilisateurs par géographie (continent, pays, ville)
   Future<dynamic> getUsersByGeography({
@@ -672,3 +664,12 @@ class _FilteredDocumentList {
       );
     }
   }
+}
+
+// Classe helper pour retourner une liste filtrée avec la bonne structure
+class _FilteredDocumentList {
+  final List<dynamic> documents;
+
+  _FilteredDocumentList(this.documents);
+}
+
