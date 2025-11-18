@@ -516,6 +516,15 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
 
       if (mounted) {
         setState(() {
+          // Trier les vidéos par score hybride (compatibilité + engagement + fraîcheur + activité)
+          newVideos.sort((a, b) {
+            final ownerA = _videoOwners[a.id];
+            final ownerB = _videoOwners[b.id];
+            if (ownerA == null || ownerB == null) return 0;
+            final scoreA = _calculateVideoScore(ownerA, a);
+            final scoreB = _calculateVideoScore(ownerB, b);
+            return scoreB.compareTo(scoreA); // Ordre décroissant (meilleur score first)
+          });
           _videos.addAll(newVideos);
           _isLoadingMore = false;
         });
