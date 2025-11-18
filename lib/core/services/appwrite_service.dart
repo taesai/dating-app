@@ -707,8 +707,38 @@ class AppwriteService {
     }
   }
 
+
   /// Rechercher des utilisateurs par géographie (continent, pays, ville)
-  Future<dynamic> getUsersByGeography({    List<String>? continents,    List<String>? countries,    List<String>? cities,  }) async {    try {      List<String> queries = [        Query.equal('isActive', true),        Query.limit(500),      ];      // Ajouter les filtres géographiques      if (continents != null && continents.isNotEmpty) {        queries.add(Query.equal('continent', continents));      }      if (countries != null && countries.isNotEmpty) {        queries.add(Query.equal('country', countries));      }      if (cities != null && cities.isNotEmpty) {        queries.add(Query.equal('city', cities));      }      return await databases.listDocuments(        databaseId: databaseId,        collectionId: usersCollectionId,        queries: queries,      );    } catch (e) {      rethrow;    }  }
+  Future<dynamic> getUsersByGeography({
+    List<String>? continents,
+    List<String>? countries,
+    List<String>? cities,
+  }) async {
+    try {
+      List<String> queries = [
+        Query.equal('isActive', true),
+        Query.limit(500),
+      ];
+
+      if (continents != null && continents.isNotEmpty) {
+        queries.add(Query.equal('continent', continents));
+      }
+      if (countries != null && countries.isNotEmpty) {
+        queries.add(Query.equal('country', countries));
+      }
+      if (cities != null && cities.isNotEmpty) {
+        queries.add(Query.equal('city', cities));
+      }
+
+      return await databases.listDocuments(
+        databaseId: databaseId,
+        collectionId: usersCollectionId,
+        queries: queries,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   // Get all users (pour l'admin)
   Future<dynamic> getAllUsers() async {
