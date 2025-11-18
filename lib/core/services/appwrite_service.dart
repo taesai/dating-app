@@ -131,14 +131,16 @@ class AppwriteService {
         'documentCount': usersTest.total,
         'message': 'Collection users accessible'
       };
-      developer.log('✅ Collection users OK (${usersTest.total} documents)', name: 'AppwriteService');
+      developer.log('✅ Collection users OK (${usersTest.total} documents)',
+          name: 'AppwriteService');
     } catch (e) {
       developer.log('❌ Collection users Error: $e', name: 'AppwriteService', error: e);
       results['tests']['usersCollection'] = {
         'success': false,
         'collectionId': usersCollectionId,
         'error': e.toString(),
-        'message': 'Collection users non accessible - Vérifiez qu\'elle existe dans Appwrite Console'
+        'message':
+            'Collection users non accessible - Vérifiez qu\'elle existe dans Appwrite Console'
       };
     }
 
@@ -157,7 +159,8 @@ class AppwriteService {
         'documentCount': videosTest.total,
         'message': 'Collection videos accessible'
       };
-      developer.log('✅ Collection videos OK (${videosTest.total} documents)', name: 'AppwriteService');
+      developer.log('✅ Collection videos OK (${videosTest.total} documents)',
+          name: 'AppwriteService');
     } catch (e) {
       developer.log('❌ Collection videos Error: $e', name: 'AppwriteService', error: e);
       results['tests']['videosCollection'] = {
@@ -183,7 +186,8 @@ class AppwriteService {
         'documentCount': matchesTest.total,
         'message': 'Collection matches accessible'
       };
-      developer.log('✅ Collection matches OK (${matchesTest.total} documents)', name: 'AppwriteService');
+      developer.log('✅ Collection matches OK (${matchesTest.total} documents)',
+          name: 'AppwriteService');
     } catch (e) {
       developer.log('❌ Collection matches Error: $e', name: 'AppwriteService', error: e);
       results['tests']['matchesCollection'] = {
@@ -209,7 +213,8 @@ class AppwriteService {
         'documentCount': likesTest.total,
         'message': 'Collection likes accessible'
       };
-      developer.log('✅ Collection likes OK (${likesTest.total} documents)', name: 'AppwriteService');
+      developer.log('✅ Collection likes OK (${likesTest.total} documents)',
+          name: 'AppwriteService');
     } catch (e) {
       developer.log('❌ Collection likes Error: $e', name: 'AppwriteService', error: e);
       results['tests']['likesCollection'] = {
@@ -305,7 +310,8 @@ class AppwriteService {
       } catch (e) {
         // Si le profil n'existe pas, retourner juste l'objet User
         // L'app pourra alors proposer de créer le profil
-        developer.log('⚠️ Profil non trouvé dans users collection pour ${user.$id}', name: 'AppwriteService');
+        developer.log('⚠️ Profil non trouvé dans users collection pour ${user.$id}',
+            name: 'AppwriteService');
         return user;
       }
     } catch (e) {
@@ -555,7 +561,8 @@ class AppwriteService {
           }
         } else {
           // C'est un ancien fileId Appwrite Storage
-          developer.log('🗑️ Suppression depuis Appwrite Storage: $fileId', name: 'AppwriteService');
+          developer.log('🗑️ Suppression depuis Appwrite Storage: $fileId',
+              name: 'AppwriteService');
           await storage.deleteFile(
             bucketId: mediasBucketId,
             fileId: fileId,
@@ -622,7 +629,7 @@ class AppwriteService {
           'userId': fromUserId,
           'fromUserId': fromUserId,
           'toUserId': toUserId,
-          'likedUserId': toUserId,  // Attribut requis par Appwrite
+          'likedUserId': toUserId, // Attribut requis par Appwrite
           // $createdAt géré automatiquement par Appwrite
         },
       );
@@ -699,7 +706,8 @@ class AppwriteService {
       rethrow;
     }
   }
-/// Rechercher des utilisateurs par géographie (continent, pays, ville)  Future<dynamic> getUsersByGeography({    List<String>? continents,    List<String>? countries,    List<String>? cities,  }) async {    try {      List<String> queries = [        Query.equal('isActive', true),        Query.limit(500),      ];      // Ajouter les filtres géographiques      if (continents != null && continents.isNotEmpty) {        queries.add(Query.equal('continent', continents));      }      if (countries != null && countries.isNotEmpty) {        queries.add(Query.equal('country', countries));      }      if (cities != null && cities.isNotEmpty) {        queries.add(Query.equal('city', cities));      }      return await databases.listDocuments(        databaseId: databaseId,        collectionId: usersCollectionId,        queries: queries,      );    } catch (e) {      rethrow;    }  }
+
+  /// Rechercher des utilisateurs par géographie (continent, pays, ville)  Future<dynamic> getUsersByGeography({    List<String>? continents,    List<String>? countries,    List<String>? cities,  }) async {    try {      List<String> queries = [        Query.equal('isActive', true),        Query.limit(500),      ];      // Ajouter les filtres géographiques      if (continents != null && continents.isNotEmpty) {        queries.add(Query.equal('continent', continents));      }      if (countries != null && countries.isNotEmpty) {        queries.add(Query.equal('country', countries));      }      if (cities != null && cities.isNotEmpty) {        queries.add(Query.equal('city', cities));      }      return await databases.listDocuments(        databaseId: databaseId,        collectionId: usersCollectionId,        queries: queries,      );    } catch (e) {      rethrow;    }  }
 
   // Get all users (pour l'admin)
   Future<dynamic> getAllUsers() async {
@@ -758,7 +766,8 @@ class AppwriteService {
       );
 
       final fileId = ID.unique();
-      developer.log('🔄 Tentative upload photo vers bucket: $mediasBucketId avec ID: $fileId', name: 'AppwriteService');
+      developer.log('🔄 Tentative upload photo vers bucket: $mediasBucketId avec ID: $fileId',
+          name: 'AppwriteService');
 
       final file = await storage.createFile(
         bucketId: mediasBucketId,
@@ -766,7 +775,8 @@ class AppwriteService {
         file: inputFile,
       );
 
-      developer.log('✅ Photo uploadée: $fileId, file object: ${file.runtimeType}', name: 'AppwriteService');
+      developer.log('✅ Photo uploadée: $fileId, file object: ${file.runtimeType}',
+          name: 'AppwriteService');
 
       // Créer un document dans la collection photos pour modération
       final photoDoc = await databases.createDocument(
@@ -965,7 +975,8 @@ class AppwriteService {
         throw Exception('Utilisateur non authentifié - userId vide');
       }
 
-      developer.log('🔍 Création like avec userId: $userId, videoId: $videoId', name: 'AppwriteService');
+      developer.log('🔍 Création like avec userId: $userId, videoId: $videoId',
+          name: 'AppwriteService');
 
       final now = DateTime.now().toIso8601String();
 
@@ -1220,7 +1231,8 @@ class AppwriteService {
     required String reportedUserId,
     required String reportType,
     required String description,
-  }) => reportsService.reportUser(
+  }) =>
+      reportsService.reportUser(
         reportedUserId: reportedUserId,
         reportType: reportType,
         description: description,
@@ -1229,13 +1241,11 @@ class AppwriteService {
   Future<dynamic> blockUser(String blockedUserId, {String? reason}) =>
       reportsService.blockUser(blockedUserId, reason: reason);
 
-  Future<void> unblockUser(String blockedUserId) =>
-      reportsService.unblockUser(blockedUserId);
+  Future<void> unblockUser(String blockedUserId) => reportsService.unblockUser(blockedUserId);
 
   Future<dynamic> getBlockedUsers() => reportsService.getBlockedUsers();
 
-  Future<bool> isUserBlocked(String userId) =>
-      reportsService.isUserBlocked(userId);
+  Future<bool> isUserBlocked(String userId) => reportsService.isUserBlocked(userId);
 
   // ==================== CHAT ====================
   // Délégation vers AppwriteChatService
@@ -1245,7 +1255,8 @@ class AppwriteService {
     required String receiverId,
     required String message,
     String? mediaUrl,
-  }) => chatService.sendMessage(
+  }) =>
+      chatService.sendMessage(
         matchId: matchId,
         receiverId: receiverId,
         message: message,
@@ -1256,21 +1267,22 @@ class AppwriteService {
     required String matchId,
     int limit = 50,
     int offset = 0,
-  }) => chatService.getMessages(
+  }) =>
+      chatService.getMessages(
         matchId: matchId,
         limit: limit,
         offset: offset,
       );
 
-  Future<void> markMessagesAsRead(String matchId) =>
-      chatService.markMessagesAsRead(matchId);
+  Future<void> markMessagesAsRead(String matchId) => chatService.markMessagesAsRead(matchId);
 
   Future<int> getUnreadMessagesCount() => chatService.getUnreadMessagesCount();
 
   StreamSubscription subscribeToMessages({
     required String matchId,
     required Function(dynamic) onMessage,
-  }) => chatService.subscribeToMessages(
+  }) =>
+      chatService.subscribeToMessages(
         matchId: matchId,
         onMessage: onMessage,
       );
@@ -1383,7 +1395,8 @@ class AppwriteService {
             final data = response.payload;
             if (data != null && data['matchId'] == matchId) {
               final userId = data['userId'] as String;
-              final isTyping = response.events.contains('databases.*.collections.*.documents.*.create');
+              final isTyping =
+                  response.events.contains('databases.*.collections.*.documents.*.create');
               onTypingChange(userId, isTyping);
 
               // Auto-supprimer après 5 secondes
