@@ -171,9 +171,10 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
       return WebVideoPlayer(
         key: _playerKey,
         videoUrl: _videoUrl!,
-        autoPlay: widget.isVisible,
+        autoPlay: false,
         loop: true,
 
+        muted: false,
       );
     }
 

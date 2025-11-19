@@ -40,7 +40,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
     );
 
     // Zoom depuis très haut (vue du monde entier) jusqu'au niveau détaillé
-    _zoomAnimation = Tween<double>(begin: 2.0, end: 11.0).animate(
+    _zoomAnimation = Tween<double>(begin: 2.0, end: 6.0).animate(
       CurvedAnimation(
         parent: _zoomAnimationController,
         curve: Curves.easeInOutCubic, // Courbe douce et élégante
@@ -226,7 +226,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
     if (_currentUser != null) {
       _mapController.move(
         LatLng(_currentUser!.latitude, _currentUser!.longitude),
-        14.0,
+        8.0,
       );
     }
   }
@@ -994,7 +994,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
         trailing: IconButton(
           icon: const Icon(Icons.location_on, color: Colors.pink),
           onPressed: () {
-            _mapController.move(LatLng(user.latitude, user.longitude), 15.0);
+            _mapController.move(LatLng(user.latitude, user.longitude), 8.0);
           },
           tooltip: 'Voir sur la carte',
         ),
