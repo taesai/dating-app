@@ -406,9 +406,7 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
     score += freshnessScore * 0.2;
 
     // 4. Activité utilisateur (15%)
-    bool isRecentlyActive = user.lastActive?.isAfter(
-      DateTime.now().subtract(const Duration(hours: 24))
-    ) ?? false;
+    bool isRecentlyActive = user.isActive;
     score += (isRecentlyActive ? 1.0 : 0.3) * 0.15;
 
     return score;
