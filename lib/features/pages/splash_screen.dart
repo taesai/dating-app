@@ -19,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  StateMachineController? _riveController;
 
   @override
   void initState() {
@@ -49,6 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _controller.dispose();
+    _riveController?.dispose();
     super.dispose();
   }
 
@@ -71,6 +73,21 @@ class _SplashScreenState extends State<SplashScreen>
                   fit: BoxFit.contain,
                   onInit: (artboard) {
                     print('✅ Animation Rive chargée avec succès');
+                    // Trouver et activer la state machine
+                    final controller = StateMachineController.fromArtboard(
+                      artboard,
+                      'State Machine 1', // Nom par défaut de la state machine Rive
+                    );
+                    if (controller != null) {
+                      artboard.addController(controller);
+                      _riveController = controller;
+                      print('🎬 State machine Rive activée');
+                    } else {
+                      print('⚠️ State machine non trouvée, essai avec animation simple');
+                      // Si pas de state machine, essayer avec SimpleAnimation
+                      final simpleController = SimpleAnimation('Animation 1');
+                      artboard.addController(simpleController);
+                    }
                   },
                 ),
               ),

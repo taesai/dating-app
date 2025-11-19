@@ -58,6 +58,8 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
   bool _hasMoreVideos = true; // Y a-t-il encore des vidéos à charger?
   RealtimeSubscription? _videoSubscription; // Subscription Realtime pour les nouvelles vidéos
   StreamSubscription? _videoStreamSubscription;
+  RealtimeSubscription? _usersSubscription; // Subscription Realtime pour les mises à jour des utilisateurs
+  StreamSubscription? _usersStreamSubscription;
   bool _isDisposing = false; // Flag pour bloquer les callbacks pendant dispose
   int _swipesRemaining = 20; // Swipes restants pour les utilisateurs non approuvés
   bool _showHeartParticles = false; // Animation de cœurs lors des likes
@@ -73,6 +75,7 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
           _subscribeToNewVideos();
+          _subscribeToUserUpdates();
         }
       });
     } else {
@@ -84,6 +87,8 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
   void dispose() {
     _isDisposing = true; // Marquer immédiatement comme en dispose
 
+    _usersSubscription?.close();
+    _usersStreamSubscription?.cancel();
     // IMPORTANT: Fermer la subscription Realtime AVANT d'annuler le stream
     _videoSubscription?.close();
     _videoStreamSubscription?.cancel();
@@ -176,6 +181,89 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
       }
     } catch (e) {
       print('❌ Erreur traitement nouvelle vidéo: $e');
+    }
+  }
+
+  // Écouter les mises à jour des utilisateurs (matchCount, likeCount) en temps réel
+  void _subscribeToUserUpdates() {
+    if (_isDisposing || !mounted) return;
+
+    try {
+      final appwriteService = AppwriteService();
+      final channel = 'databases.${AppwriteService.databaseId}.collections.${AppwriteService.usersCollectionId}.documents';
+
+      print('🔔 Tentative d\'abonnement Realtime utilisateurs: $channel');
+
+      _usersSubscription = appwriteService.realtime.subscribe([channel]);
+
+      _usersStreamSubscription = _usersSubscription!.stream.listen(
+        (response) {
+          try {
+            if (_isDisposing || !mounted) return;
+            print('📡 Event Realtime utilisateurs reçu: ${response.events}');
+
+            if (response.events.contains('databases.*.collections.*.documents.*.update')) {
+              print('👤 Mise à jour utilisateur détectée!');
+              _handleUserUpdate(response.payload);
+            }
+          } catch (e) {
+            if (!_isDisposing && mounted) {
+              print('❌ Erreur callback utilisateurs: $e');
+            }
+          }
+        },
+        onError: (error) {
+          if (!_isDisposing && mounted) {
+            print('⚠️ Erreur stream Realtime utilisateurs: $error');
+          }
+        },
+        onDone: () {
+          print('✅ Stream Realtime utilisateurs terminé');
+        },
+        cancelOnError: false,
+      );
+
+      print('✅ Abonnement Realtime utilisateurs actif');
+    } catch (e) {
+      print('⚠️ Impossible de s\'abonner au Realtime utilisateurs: $e');
+    }
+  }
+
+  // Gérer la mise à jour d'un utilisateur (matchCount, likeCount)
+  void _handleUserUpdate(Map<String, dynamic> userData) {
+    try {
+      final userId = userData['\$id'] as String?;
+      if (userId == null) return;
+
+      // Vérifier si cet utilisateur est dans notre map de propriétaires de vidéos
+      final videosToUpdate = <String>[];
+      for (final entry in _videoOwners.entries) {
+        if (entry.value.id == userId) {
+          videosToUpdate.add(entry.key); // videoId
+        }
+      }
+
+      if (videosToUpdate.isEmpty) {
+        // Cet utilisateur n'est pas dans notre feed actuel
+        return;
+      }
+
+      // Créer un nouvel objet DatingUser avec les données mises à jour
+      final updatedUser = DatingUser.fromJson(userData);
+
+      print('🔄 Mise à jour de l\'utilisateur ${updatedUser.name}: matchCount=${updatedUser.matchCount}, likeCount=${updatedUser.likeCount}');
+
+      // Mettre à jour toutes les vidéos de cet utilisateur dans _videoOwners
+      if (mounted) {
+        setState(() {
+          for (final videoId in videosToUpdate) {
+            _videoOwners[videoId] = updatedUser;
+          }
+        });
+        print('✅ ${videosToUpdate.length} vidéo(s) mise(s) à jour pour ${updatedUser.name}');
+      }
+    } catch (e) {
+      print('❌ Erreur traitement mise à jour utilisateur: $e');
     }
   }
 

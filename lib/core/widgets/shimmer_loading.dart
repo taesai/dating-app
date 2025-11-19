@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
-/// Widget de shimmer loading réutilisable avec effet de brillance
-class ShimmerLoading extends StatefulWidget {
+/// Widget de shimmer loading réutilisable
+class ShimmerLoading extends StatelessWidget {
   final Widget child;
   final bool isLoading;
   final Color baseColor;
   final Color highlightColor;
-  final Duration duration;
 
   const ShimmerLoading({
     super.key,
@@ -14,173 +14,103 @@ class ShimmerLoading extends StatefulWidget {
     this.isLoading = true,
     this.baseColor = const Color(0xFFE0E0E0),
     this.highlightColor = const Color(0xFFF5F5F5),
-    this.duration = const Duration(milliseconds: 1500),
   });
 
   @override
-  State<ShimmerLoading> createState() => _ShimmerLoadingState();
-}
-
-class _ShimmerLoadingState extends State<ShimmerLoading>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
-
-    if (widget.isLoading) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void didUpdateWidget(ShimmerLoading oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isLoading) {
-      _controller.repeat();
-    } else {
-      _controller.stop();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (!widget.isLoading) {
-      return widget.child;
+    if (!isLoading) {
+      return child;
     }
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return ShaderMask(
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.centerRight,
-              colors: [
-                widget.baseColor,
-                widget.highlightColor,
-                widget.baseColor,
-              ],
-              stops: [
-                _controller.value - 0.3,
-                _controller.value,
-                _controller.value + 0.3,
-              ],
-            ).createShader(bounds);
-          },
-          blendMode: BlendMode.srcATop,
-          child: child,
-        );
-      },
-      child: widget.child,
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: child,
     );
   }
 }
 
-/// Carte de profil skeleton pour le loading
+/// Card skeleton pour profils
 class ProfileCardSkeleton extends StatelessWidget {
   const ProfileCardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ShimmerLoading(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image placeholder
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE0E0E0),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFE0E0E0),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
             ),
-
-            // Info section
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Nom
-                  Container(
-                    width: 150,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0E0E0),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 150,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0E0E0),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  const SizedBox(height: 8),
-
-                  // Bio
-                  Container(
-                    width: double.infinity,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0E0E0),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0E0E0),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    width: 200,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0E0E0),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: 200,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0E0E0),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-
-                  const SizedBox(height: 12),
-
-                  // Tags
-                  Row(
-                    children: List.generate(
-                      3,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Container(
-                          width: 60,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE0E0E0),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: List.generate(
+                    3,
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Container(
+                        width: 60,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0E0E0),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Liste de cartes skeleton
+/// Liste de profils shimmer
 class ProfileCardListSkeleton extends StatelessWidget {
   final int count;
 
@@ -188,23 +118,27 @@ class ProfileCardListSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: count,
-      padding: const EdgeInsets.all(16),
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: SizedBox(
-            height: 400,
-            child: ProfileCardSkeleton(),
-          ),
-        );
-      },
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFE0E0E0),
+      highlightColor: const Color(0xFFF5F5F5),
+      child: ListView.builder(
+        itemCount: count,
+        padding: const EdgeInsets.all(16),
+        itemBuilder: (context, index) {
+          return const Padding(
+            padding: EdgeInsets.only(bottom: 16),
+            child: SizedBox(
+              height: 400,
+              child: ProfileCardSkeleton(),
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
-/// Grille de cartes skeleton pour la page des likes
+/// Grille de likes shimmer
 class LikesGridSkeleton extends StatelessWidget {
   final int count;
 
@@ -212,30 +146,32 @@ class LikesGridSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: count,
-      itemBuilder: (context, index) {
-        return ShimmerLoading(
-          child: Container(
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFE0E0E0),
+      highlightColor: const Color(0xFFF5F5F5),
+      child: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: count,
+        itemBuilder: (context, index) {
+          return Container(
             decoration: BoxDecoration(
               color: const Color(0xFFE0E0E0),
               borderRadius: BorderRadius.circular(20),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
 
-/// Skeleton pour liste de messages
+/// Liste de chats shimmer
 class ChatListSkeleton extends StatelessWidget {
   final int count;
 
@@ -243,16 +179,17 @@ class ChatListSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: count,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemBuilder: (context, index) {
-        return ShimmerLoading(
-          child: Padding(
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFE0E0E0),
+      highlightColor: const Color(0xFFF5F5F5),
+      child: ListView.builder(
+        itemCount: count,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemBuilder: (context, index) {
+          return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                // Avatar
                 Container(
                   width: 60,
                   height: 60,
@@ -262,8 +199,6 @@ class ChatListSkeleton extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-
-                // Content
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,14 +225,14 @@ class ChatListSkeleton extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
 
-/// Skeleton simple pour texte
+/// Text skeleton
 class TextSkeleton extends StatelessWidget {
   final double width;
   final double height;
@@ -325,7 +260,7 @@ class TextSkeleton extends StatelessWidget {
   }
 }
 
-/// Skeleton circulaire (avatar, etc.)
+/// Circle skeleton (avatar)
 class CircleSkeleton extends StatelessWidget {
   final double size;
 

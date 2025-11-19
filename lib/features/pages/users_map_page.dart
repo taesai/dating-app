@@ -491,7 +491,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
                     Slider(
                       value: _radiusKm,
                       min: 10.0,
-                      max: 2000.0, // Augmenté à 2000km pour voir tous les utilisateurs
+                      max: 10000.0, // Augmenté à 2000km pour voir tous les utilisateurs
                       divisions: 199,
                       label: '${_radiusKm.toInt()} km',
                       activeColor: Colors.pink,
@@ -605,7 +605,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
                       Slider(
                         value: _radiusKm,
                         min: 10.0,
-                        max: 2000.0,
+                        max: 10000.0,
                         divisions: 199,
                         activeColor: Colors.white,
                         inactiveColor: Colors.white30,
@@ -722,7 +722,7 @@ class _UsersMapPageState extends State<UsersMapPage> with SingleTickerProviderSt
                       Slider(
                         value: _radiusKm,
                         min: 10.0,
-                        max: 2000.0,
+                        max: 10000.0,
                         divisions: 199,
                         activeColor: Colors.white,
                         inactiveColor: Colors.white30,
