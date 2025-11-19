@@ -596,7 +596,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
             Container(
               color: Colors.black,
               child: Center(
-                child: RiveLoader(size: 80),
+                child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 80),
               ),
             ),
         ],
@@ -666,7 +666,6 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
             } else if (index == 3) {
               setState(() {
                 _matchesPageKey = UniqueKey();
-                _matchesCount = 0;
                 _matchesViewed = true;
               });
               _saveViewedFlags();
@@ -753,7 +752,6 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
                 setState(() {
                   _currentIndex = 3;
                   _matchesPageKey = UniqueKey();
-                  _matchesCount = 0;
                   _matchesViewed = true;
                 });
                 _saveViewedFlags();
@@ -792,7 +790,6 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
             } else if (index == 3) {
               setState(() {
                 _matchesPageKey = UniqueKey();
-                _matchesCount = 0;
                 _matchesViewed = true;
               });
               _saveViewedFlags();
@@ -870,8 +867,6 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
                 setState(() {
                   _currentIndex = 3;
                   _matchesPageKey = UniqueKey();
-                  _matchesCount = 0;
-                  _matchesViewed = true;
                 });
                 _saveViewedFlags();
               },
@@ -936,8 +931,6 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
           // Matches page - recharger complètement la page et mettre badges à 0
           setState(() {
             _matchesPageKey = UniqueKey(); // Force le rebuild de MatchesPage
-            _matchesCount = 0;
-            _messagesCount = 0;
             _matchesViewed = true;
             _messagesViewed = true;
           });
@@ -1016,7 +1009,7 @@ class _MapPanelWidgetState extends State<_MapPanelWidget> {
     if (_isLoading || _currentUser == null) {
       return Container(
         color: Colors.grey[100],
-        child: Center(child: RiveLoader(size: 60)),
+        child: Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60)),
       );
     }
 
