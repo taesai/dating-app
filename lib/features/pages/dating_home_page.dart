@@ -596,8 +596,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
             Container(
               color: Colors.black,
               child: Center(
-                child: RiveLoader(size: 80)
-                ),
+                child: RiveLoader(size: 80),
               ),
             ),
         ],
