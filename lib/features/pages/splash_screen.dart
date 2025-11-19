@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     // Timer pour passer à la page suivante
-    Timer(const Duration(milliseconds: 3000), () {
+    Timer(const Duration(milliseconds: 5000), () {
       widget.onComplete();
     });
   }
@@ -78,8 +78,8 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 // Animation Rive du coeur
                 SizedBox(
-                  width: 250,
-                  height: 250,
+                  width: 400,
+                  height: 400,
                   child: RiveAnimation.asset(
                     'assets/animations/earth-map.riv',
                     fit: BoxFit.contain,

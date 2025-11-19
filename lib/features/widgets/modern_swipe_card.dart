@@ -81,7 +81,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
       } else {
         if (_isVideoInitialized) {
           WebVideoPlayer.setVolume(_playerKey, 0.0);
-          WebVideoPlayer.pause(_playerKey);
+          WebVideoPlayer.stop(_playerKey);
         }
       }
     }
@@ -112,7 +112,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
       } else if (mounted) {
         print('🔇 Carte INVISIBLE - Volume 0.0 + Pause pour ${widget.user.name}');
         WebVideoPlayer.setVolume(_playerKey, 0.0);
-        WebVideoPlayer.pause(_playerKey);
+        WebVideoPlayer.stop(_playerKey);
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -141,7 +141,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
   void dispose() {
     print('🗑️ Dispose vidéo pour ${widget.user.name}');
     if (_playerKey.currentState != null) {
-      WebVideoPlayer.pause(_playerKey);
+      WebVideoPlayer.stop(_playerKey);
       WebVideoPlayer.setVolume(_playerKey, 0.0);
     }
     super.dispose();

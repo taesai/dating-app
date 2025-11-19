@@ -46,6 +46,7 @@ class WebVideoPlayer extends StatefulWidget {
       state.setVolume(volume);
     }
   }
+static void stop(GlobalKey<State<StatefulWidget>> key) {    final state = key.currentState;    if (state is _WebVideoPlayerState) {      state.stop();    }  }
 }
 
 class _WebVideoPlayerState extends State<WebVideoPlayer> {
@@ -129,6 +130,7 @@ class _WebVideoPlayerState extends State<WebVideoPlayer> {
   }
 
   void setVolume(double volume) {
+void stop() {    try {      _videoElement?.pause();      _videoElement?.currentTime = 0;      _videoElement?.load();    } catch (e) {      print('⚠️ Erreur stop: $e');    }  }
     try {
       _videoElement?.volume = volume.clamp(0.0, 1.0);
     } catch (e) {
