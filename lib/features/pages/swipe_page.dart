@@ -1557,7 +1557,7 @@ class _UserCardState extends State<_UserCard> with AutomaticKeepAliveClientMixin
       return Container(
         color: Colors.black,
         child: const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: RiveLoader(size: 80),
         ),
       );
     } else if (widget.user.photoUrlsFull.isNotEmpty) {
