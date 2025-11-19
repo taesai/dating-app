@@ -62,12 +62,12 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Animation Rive du coeur
+              // Animation Rive progress bar
               SizedBox(
-                width: 300,
-                height: 300,
+                width: 200,
+                height: 200,
                 child: RiveAnimation.asset(
-                  'assets/animations/16305-30720-heart.riv',
+                  'assets/animations/progress-bar.riv',
                   fit: BoxFit.contain,
                   onInit: (artboard) {
                     print('✅ Animation Rive chargée avec succès');

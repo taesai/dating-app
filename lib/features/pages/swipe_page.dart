@@ -1332,8 +1332,8 @@ class _UserCardState extends State<_UserCard> with AutomaticKeepAliveClientMixin
   void dispose() {
     print('🗑️ Dispose vidéo pour ${widget.user.name}');
     if (_playerKey.currentState != null) {
-      print('🛑 Arrêt et libération vidéo pour ${widget.user.name}');
-      WebVideoPlayer.pause(_playerKey);
+      print('🛑 Arrêt et libération complète vidéo pour ${widget.user.name}');
+      WebVideoPlayer.stop(_playerKey);
       WebVideoPlayer.setVolume(_playerKey, 0.0);
     }
     super.dispose();
