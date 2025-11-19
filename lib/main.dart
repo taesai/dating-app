@@ -14,6 +14,7 @@ import 'features/pages/upgrade_user_page.dart';
 import 'features/pages/splash_screen.dart';
 import 'core/widgets/rive_loader.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'dart:html' as html;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
@@ -132,8 +133,20 @@ class AuthWrapper extends ConsumerStatefulWidget {
 
 class _AuthWrapperState extends ConsumerState<AuthWrapper> {
   bool _showSplash = true;
+  @override
+  void initState() {
+    super.initState();
+    // Vérifier si le splash a déjà été affiché pendant cette session
+    final splashShown = html.window.sessionStorage['splash_shown'];
+    if (splashShown == 'true') {
+      _showSplash = false;
+    }
+  }
+
 
   void _completeSplash() {
+    // Marquer le splash comme affiché dans sessionStorage
+    html.window.sessionStorage['splash_shown'] = 'true';
     setState(() {
       _showSplash = false;
     });

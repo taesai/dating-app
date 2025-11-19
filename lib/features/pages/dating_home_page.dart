@@ -404,8 +404,8 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
       print('✅ Matches valides: $count (déjà vu: $_matchesViewed)');
       if (mounted) {
         setState(() {
-          // Si déjà vu, afficher 0. Sinon afficher le nombre réel
-          _matchesCount = _matchesViewed ? 0 : count;
+          // Toujours afficher le nombre réel de matches
+          _matchesCount = count;
         });
       }
     } catch (e) {
@@ -596,9 +596,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
             Container(
               color: Colors.black,
               child: Center(
-                child: LoadingAnimationWidget.dotsTriangle(
-                  color: Colors.pink,
-                  size: 80,
+                child: RiveLoader(size: 80)
                 ),
               ),
             ),
@@ -1019,7 +1017,7 @@ class _MapPanelWidgetState extends State<_MapPanelWidget> {
     if (_isLoading || _currentUser == null) {
       return Container(
         color: Colors.grey[100],
-        child: Center(child: LoadingAnimationWidget.dotsTriangle(color: Colors.pink, size: 60)),
+        child: Center(child: RiveLoader(size: 60)),
       );
     }
 
