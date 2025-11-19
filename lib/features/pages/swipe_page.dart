@@ -389,7 +389,70 @@ class _SwipePageState extends State<SwipePage> with AutomaticKeepAliveClientMixi
       print('⚠️ Erreur chargement utilisateurs bloqués: $e');
     }
   }
-/// Algorithme hybride de scoring des vidéos  double _calculateVideoScore(DatingUser user, VideoModel video) {    double score = 0;    // 1. Compatibilité de base (40%)    score += _calculateCompatibility(user) * 0.4;    // 2. Engagement de la vidéo (25%)    double engagementRate = video.views > 0 ? video.likes / video.views : 0;    score += engagementRate * 0.25;    // 3. Fraîcheur - vidéos récentes (20%)    int daysSinceUpload = DateTime.now().difference(video.createdAt ?? DateTime.now()).inDays;    double freshnessScore = 1 / (1 + daysSinceUpload / 7); // Décroît après 7 jours    score += freshnessScore * 0.2;    // 4. Activité utilisateur (15%)    bool isRecentlyActive = user.lastActive?.isAfter(      DateTime.now().subtract(const Duration(hours: 24))    ) ?? false;    score += (isRecentlyActive ? 1.0 : 0.3) * 0.15;    return score;  }  /// Calculer le score de compatibilité entre deux utilisateurs  double _calculateCompatibility(DatingUser user) {    if (_currentUser == null) return 0.5;    double compatScore = 0;    int factors = 0;    // 1. Âge compatible (poids: 2)    int ageDiff = (user.age - _currentUser!.age).abs();    if (ageDiff <= 5) {      compatScore += 1.0 * 2;    } else if (ageDiff <= 10) {      compatScore += 0.5 * 2;    }    factors += 2;    // 2. Intérêts communs (poids: 3)    final commonInterests = user.interests.toSet().intersection(_currentUser!.interests.toSet());    double interestScore = user.interests.isNotEmpty         ? commonInterests.length / user.interests.length         : 0;    compatScore += interestScore * 3;    factors += 3;    // 3. Distance (poids: 2)    double distance = user.distanceTo(_currentUser!);    double distanceScore = 1 - (distance / 10000).clamp(0.0, 1.0); // Normaliser sur 10000km    compatScore += distanceScore * 2;    factors += 2;    // 4. Orientation sexuelle compatible (poids: 1)    if (user.lookingFor.contains(_currentUser!.gender)) {      compatScore += 1.0;    }    factors += 1;    return factors > 0 ? compatScore / factors : 0.5;  }
+  /// Algorithme hybride de scoring des vidéos
+  double _calculateVideoScore(DatingUser user, VideoModel video) {
+    double score = 0;
+
+    // 1. Compatibilité de base (40%)
+    score += _calculateCompatibility(user) * 0.4;
+
+    // 2. Engagement de la vidéo (25%)
+    double engagementRate = video.views > 0 ? video.likes / video.views : 0;
+    score += engagementRate * 0.25;
+
+    // 3. Fraîcheur - vidéos récentes (20%)
+    int daysSinceUpload = DateTime.now().difference(video.createdAt ?? DateTime.now()).inDays;
+    double freshnessScore = 1 / (1 + daysSinceUpload / 7); // Décroît après 7 jours
+    score += freshnessScore * 0.2;
+
+    // 4. Activité utilisateur (15%)
+    bool isRecentlyActive = user.lastActive?.isAfter(
+      DateTime.now().subtract(const Duration(hours: 24))
+    ) ?? false;
+    score += (isRecentlyActive ? 1.0 : 0.3) * 0.15;
+
+    return score;
+  }
+
+  /// Calculer le score de compatibilité entre deux utilisateurs
+  double _calculateCompatibility(DatingUser user) {
+    if (_currentUser == null) return 0.5;
+
+    double compatScore = 0;
+    int factors = 0;
+
+    // 1. Âge compatible (poids: 2)
+    int ageDiff = (user.age - _currentUser!.age).abs();
+    if (ageDiff <= 5) {
+      compatScore += 1.0 * 2;
+    } else if (ageDiff <= 10) {
+      compatScore += 0.5 * 2;
+    }
+    factors += 2;
+
+    // 2. Intérêts communs (poids: 3)
+    final commonInterests = user.interests.toSet().intersection(_currentUser!.interests.toSet());
+    double interestScore = user.interests.isNotEmpty 
+        ? commonInterests.length / user.interests.length 
+        : 0;
+    compatScore += interestScore * 3;
+    factors += 3;
+
+    // 3. Distance (poids: 2)
+    double distance = user.distanceTo(_currentUser!);
+    double distanceScore = 1 - (distance / 10000).clamp(0.0, 1.0); // Normaliser sur 10000km
+    compatScore += distanceScore * 2;
+    factors += 2;
+
+    // 4. Orientation sexuelle compatible (poids: 1)
+    if (user.lookingFor.contains(_currentUser!.gender)) {
+      compatScore += 1.0;
+    }
+    factors += 1;
+
+    return factors > 0 ? compatScore / factors : 0.5;
+  }
+
 
   /// Charger un nouveau batch de vidéos (pagination)
   /// Continue à charger jusqu'à avoir au moins _minVideosToKeep vidéos valides
