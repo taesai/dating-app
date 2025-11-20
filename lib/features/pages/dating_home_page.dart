@@ -666,6 +666,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
             } else if (index == 3) {
               setState(() {
                 _matchesPageKey = UniqueKey();
+                _matchesCount = 0;
                 _matchesViewed = true;
               });
               _saveViewedFlags();
@@ -752,6 +753,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
                 setState(() {
                   _currentIndex = 3;
                   _matchesPageKey = UniqueKey();
+                  _matchesCount = 0;
                   _matchesViewed = true;
                 });
                 _saveViewedFlags();
@@ -790,6 +792,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
             } else if (index == 3) {
               setState(() {
                 _matchesPageKey = UniqueKey();
+                _matchesCount = 0;
                 _matchesViewed = true;
               });
               _saveViewedFlags();
@@ -867,6 +870,8 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
                 setState(() {
                   _currentIndex = 3;
                   _matchesPageKey = UniqueKey();
+                  _matchesCount = 0;
+                  _matchesViewed = true;
                 });
                 _saveViewedFlags();
               },
@@ -926,6 +931,7 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
           // Matches page - recharger complètement la page et mettre badges à 0
           setState(() {
             _matchesPageKey = UniqueKey(); // Force le rebuild de MatchesPage
+            _matchesCount = 0;
             _matchesViewed = true;
             _messagesViewed = true;
           });
