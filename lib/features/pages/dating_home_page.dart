@@ -874,33 +874,28 @@ class DatingHomePageState extends ConsumerState<DatingHomePage> with WidgetsBind
           ),
           const VerticalDivider(thickness: 1, width: 1),
         ] else if (_currentIndex == 1) ...[
-          // Page Likes : Liste complète des likes dans le panneau gauche
-          const SizedBox(
-            width: 350,
+          // Page Likes : Liste complète occupe tout l'espace
+          Expanded(
             child: LikesPage(),
           ),
-          const VerticalDivider(thickness: 1, width: 1),
         ] else if (_currentIndex == 3) ...[
-          // Page Matches : Liste complète des matches dans le panneau gauche
-          SizedBox(
-            width: 350,
+          // Page Matches : Liste complète occupe tout l'espace
+          Expanded(
             child: MatchesPage(key: _matchesPageKey),
           ),
-          const VerticalDivider(thickness: 1, width: 1),
-        ],
-
-        // Feed principal au centre (limité pour les vidéos)
-        Expanded(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                // Limiter la largeur à 600px max pour les vidéos (format vertical)
-                maxWidth: _currentIndex == 0 ? 600 : double.infinity,
+        ] else ...[
+          // Autres pages : Feed principal au centre
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: _currentIndex == 0 ? 600 : double.infinity,
+                ),
+                child: _buildDesktopFeed(),
               ),
-              child: _buildDesktopFeed(),
             ),
           ),
-        ),
+        ],
 
         // Carte géographique à droite (seulement sur page Découvrir)
         if (_currentIndex == 0) ...[
