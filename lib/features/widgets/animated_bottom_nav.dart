@@ -134,7 +134,7 @@ class _AnimatedBottomNavState extends State<AnimatedBottomNav>
               badgeCount: 0,
             ),
             _NavItem(
-              icon: Icons.favorite,
+              icon: Icons.celebration,
               label: 'Matchs',
               index: 3,
               currentIndex: widget.currentIndex,

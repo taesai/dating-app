@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:video_player/video_player.dart';
 import '../../core/models/dating_user.dart';
 import '../../core/models/video_model.dart';
 import '../../core/services/backend_service.dart';
-import '../../core/widgets/web_video_player.dart';
+import '../../core/services/video_manager.dart';
 import '../../core/utils/responsive_helper.dart';
 import '../../core/widgets/rive_loader.dart';
 
@@ -35,11 +36,12 @@ class ModernSwipeCard extends StatefulWidget {
 }
 
 class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAliveClientMixin {
-  final GlobalKey _playerKey = GlobalKey();
+  VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
   String? _videoUrl;
   bool _isLoading = false;
   bool _showInfo = false;
+  final _videoManager = VideoManager();
 
   @override
   bool get wantKeepAlive => true;
@@ -61,6 +63,8 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.video?.id != widget.video?.id) {
+      _videoController?.dispose();
+      _videoController = null;
       setState(() {
         _isLoading = widget.video != null;
         _isVideoInitialized = false;
@@ -73,15 +77,20 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
 
     if (oldWidget.isVisible != widget.isVisible) {
       if (widget.isVisible) {
-        if (_isVideoInitialized) {
-          WebVideoPlayer.setVolume(_playerKey, 1.0);
-          WebVideoPlayer.play(_playerKey);
+        if (_videoController != null && _videoController!.value.isInitialized) {
+          print('📹 VISIBLE ${widget.user.name}: Enregistrement dans VideoManager');
+          _videoManager.setCurrentlyPlaying(_videoController!);
+          _videoController!.setVolume(1.0);
+          if (!_videoController!.value.isPlaying) {
+            _videoController!.play();
+          }
           _incrementViewIfNeeded();
         }
       } else {
-        if (_isVideoInitialized) {
-          WebVideoPlayer.setVolume(_playerKey, 0.0);
-          WebVideoPlayer.stop(_playerKey);
+        if (_videoController != null && _videoController!.value.isInitialized) {
+          print('📹 INVISIBLE ${widget.user.name}: pause()');
+          _videoController!.setVolume(0.0);
+          _videoController!.pause();
         }
       }
     }
@@ -91,7 +100,21 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
     if (widget.video == null) return;
 
     try {
-      final url = await widget.backendService.getVideoUrl(widget.video!.fileId);
+      // Si videoUrl existe déjà (Cloudinary), l'utiliser directement
+      final url = widget.video!.videoUrl != null && widget.video!.videoUrl!.isNotEmpty
+          ? widget.video!.videoUrl!
+          : await widget.backendService.getVideoUrl(widget.video!.fileId);
+
+      print('🎬 Init ${widget.user.name} (visible: ${widget.isVisible}): $url');
+
+      // Créer le controller et initialiser
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(url))
+        ..setLooping(true)
+        ..setVolume(0.0); // Commencer muted
+
+      await _videoController!.initialize();
+
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
@@ -99,20 +122,16 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
         _isVideoInitialized = true;
       });
 
-      print('🎬 Init ${widget.user.name} (visible: ${widget.isVisible}): $url');
-
-      // Petit délai réduit pour laisser le player se préparer
-      await Future.delayed(const Duration(milliseconds: 50));
-
       if (widget.isVisible && mounted) {
-        print('🔊 Carte VISIBLE - Volume 1.0 + Play pour ${widget.user.name}');
-        WebVideoPlayer.setVolume(_playerKey, 1.0);
-        WebVideoPlayer.play(_playerKey);
+        print('🔊 Carte VISIBLE - Volume 1.0 pour ${widget.user.name}');
+        _videoManager.setCurrentlyPlaying(_videoController!);
+        _videoController!.setVolume(1.0);
+        _videoController!.play();
         _incrementViewIfNeeded();
       } else if (mounted) {
         print('🔇 Carte INVISIBLE - Volume 0.0 + Pause pour ${widget.user.name}');
-        WebVideoPlayer.setVolume(_playerKey, 0.0);
-        WebVideoPlayer.stop(_playerKey);
+        _videoController!.setVolume(0.0);
+        _videoController!.pause();
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -140,9 +159,11 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
   @override
   void dispose() {
     print('🗑️ Dispose vidéo pour ${widget.user.name}');
-    if (_playerKey.currentState != null) {
-      WebVideoPlayer.stop(_playerKey);
-      WebVideoPlayer.setVolume(_playerKey, 0.0);
+    if (_videoController != null) {
+      _videoManager.unregisterController(_videoController!);
+      _videoController!.pause();
+      _videoController!.dispose();
+      _videoController = null;
     }
     super.dispose();
   }
@@ -167,14 +188,14 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
       );
     }
 
-    if (_isVideoInitialized && _videoUrl != null && widget.video != null) {
-      return WebVideoPlayer(
-        key: _playerKey,
-        videoUrl: _videoUrl!,
-        autoPlay: false,
-        loop: true,
-
-        muted: false,
+    if (_isVideoInitialized && _videoController != null && _videoController!.value.isInitialized) {
+      return FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: _videoController!.value.size.width,
+          height: _videoController!.value.size.height,
+          child: VideoPlayer(_videoController!),
+        ),
       );
     }
 
@@ -340,7 +361,7 @@ class _ModernSwipeCardState extends State<ModernSwipeCard> with AutomaticKeepAli
                 ),
               // Matches du profil
               _buildStatChip(
-                icon: Icons.favorite_border,
+                icon: Icons.celebration,
                 label: '${widget.user.matchCount ?? 0}',
                 color: Colors.purple,
                 heroTag: 'matches_${widget.user.id}',
